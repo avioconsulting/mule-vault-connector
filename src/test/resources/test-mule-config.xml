@@ -1,0 +1,24 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+    <vault:config name="config" configId="configId">
+        <vault:connection vaultToken="s.uo18rIGCFexkcxOOJET97EPA" vaultUrl="http://localhost:8200" />
+    </vault:config>
+
+    <flow name="sayHiFlow">
+        <vault:say-hi person="Mariano Gonzalez"/>
+    </flow>
+
+    <flow name="getSecretFlow">
+        <vault:get-secret config-ref="config" path="secret/apikey/google"/>
+    </flow>
+    <!--
+    <flow name="retrieveInfoFlow">
+        <vault:retrieve-info config-ref="config"/>
+    </flow>
+    -->
+
+</mule>
