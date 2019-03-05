@@ -1,6 +1,9 @@
-package com.avioconsulting.mule.connector.vault.internal;
+package com.avioconsulting.mule.connector.vault.internal.connection.provider;
 
+import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.internal.connection.impl.VaultBasicConnection;
 import org.mule.runtime.api.connection.ConnectionException;
+import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -22,6 +25,8 @@ import org.slf4j.LoggerFactory;
  * will be pooled and reused. There are other implementations like {@link CachedConnectionProvider} which lazily creates and
  * caches connections or simply {@link ConnectionProvider} if you want a new connection each time something requires one.
  */
+@DisplayName("Basic Connection")
+@Alias("basic-connection")
 public class VaultConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
   private final Logger LOGGER = LoggerFactory.getLogger(VaultConnectionProvider.class);
@@ -38,9 +43,11 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
   @Parameter
   private String vaultUrl;
 
+
+
   @Override
   public VaultConnection connect() throws ConnectionException {
-    return new VaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl);
+    return new VaultBasicConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl);
   }
 
   @Override

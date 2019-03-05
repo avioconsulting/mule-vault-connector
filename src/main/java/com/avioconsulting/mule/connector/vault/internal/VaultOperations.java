@@ -2,6 +2,7 @@ package com.avioconsulting.mule.connector.vault.internal;
 
 import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
 
+import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
 import com.bettercloud.vault.VaultException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

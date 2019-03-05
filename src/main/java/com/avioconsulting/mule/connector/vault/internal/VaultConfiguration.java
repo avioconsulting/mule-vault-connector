@@ -1,5 +1,7 @@
 package com.avioconsulting.mule.connector.vault.internal;
 
+import com.avioconsulting.mule.connector.vault.internal.connection.provider.VaultConnectionProvider;
+import com.avioconsulting.mule.connector.vault.internal.connection.provider.VaultSSLConnectionProvider;
 import org.mule.runtime.extension.api.annotation.Operations;
 import org.mule.runtime.extension.api.annotation.connectivity.ConnectionProviders;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
@@ -9,7 +11,7 @@ import org.mule.runtime.extension.api.annotation.param.Parameter;
  * operations since they represent something core from the extension.
  */
 @Operations(VaultOperations.class)
-@ConnectionProviders(VaultConnectionProvider.class)
+@ConnectionProviders({VaultConnectionProvider.class, VaultSSLConnectionProvider.class})
 public class VaultConfiguration {
 
   @Parameter

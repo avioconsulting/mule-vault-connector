@@ -5,7 +5,7 @@
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
     <vault:config name="config" configId="configId">
-        <vault:connection vaultToken="s.uo18rIGCFexkcxOOJET97EPA" vaultUrl="http://localhost:8200" />
+        <vault:basic-connection vaultToken="s.uo18rIGCFexkcxOOJET97EPA" vaultUrl="http://localhost:8200" />
     </vault:config>
 
     <flow name="getSecretFlow">
@@ -16,10 +16,6 @@
         <vault:write-secret config-ref="config" path="secret/test/mule-write" secret='{"name":"test"}'/>
         <vault:get-secret config-ref="config" path="secret/test/mule-write" />
     </flow>
-    <!--
-    <flow name="retrieveInfoFlow">
-        <vault:retrieve-info config-ref="config"/>
-    </flow>
-    -->
+
 
 </mule>
