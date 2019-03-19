@@ -8,6 +8,7 @@ import com.bettercloud.vault.rest.RestResponse;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
+import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
@@ -17,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
+@DisplayName("EC2 Connection")
+@Alias("ec2-connection")
 public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
     // This is the URI to use to retrieve the PKCS7 Signature

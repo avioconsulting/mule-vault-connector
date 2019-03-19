@@ -5,11 +5,14 @@ import com.avioconsulting.mule.connector.vault.internal.connection.impl.IamVault
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
+import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 
+@DisplayName("IAM Connection")
+@Alias("iam-connection")
 public class VaultIamConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
     @DisplayName("Vault URL")
