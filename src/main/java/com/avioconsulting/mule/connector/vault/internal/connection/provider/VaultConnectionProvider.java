@@ -1,7 +1,7 @@
 package com.avioconsulting.mule.connector.vault.internal.connection.provider;
 
 import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.internal.connection.impl.VaultBasicConnection;
+import com.avioconsulting.mule.connector.vault.internal.connection.impl.BasicVaultConnection;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
@@ -47,7 +47,7 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
 
   @Override
   public VaultConnection connect() throws ConnectionException {
-    return new VaultBasicConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl);
+    return new BasicVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl);
   }
 
   @Override

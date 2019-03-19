@@ -1,0 +1,78 @@
+package com.avioconsulting.mule.connector.vault.internal.connection.impl;
+
+import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
+import com.bettercloud.vault.Vault;
+import com.bettercloud.vault.VaultConfig;
+import com.bettercloud.vault.VaultException;
+import com.bettercloud.vault.response.AuthResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Clock;
+import java.time.Instant;
+
+public abstract class AbstractVaultConnection implements VaultConnection {
+
+    private Logger LOGGER = LoggerFactory.getLogger(AbstractVaultConnection.class);
+
+    String id;
+    boolean valid = false;
+    Vault vault;
+    VaultConfig vaultConfig;
+    boolean renewable;
+    Instant expirationTime;
+
+    public AbstractVaultConnection() {
+        id = null;
+        vault = null;
+        vaultConfig = new VaultConfig();
+        renewable = false;
+        expirationTime = Clock.systemDefaultZone().instant();
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public Vault getVault() {
+        return vault;
+    }
+
+    @Override
+    public void invalidate() {
+        this.valid = false;
+        this.vault = null;
+    }
+
+    @Override
+    public boolean isValid() {
+        if (expirationTime != null) {
+            if (expirationTime.isBefore(Clock.systemDefaultZone().instant())) {
+                renewLease();
+            } else {
+                valid = false;
+            }
+        }
+        return valid;
+    }
+
+    /**
+     * Renew the Vault Token to keep it valid
+     */
+    @Override
+    public void renewLease() {
+        if (renewable && expirationTime != null && expirationTime.isBefore(Clock.systemDefaultZone().instant())) {
+            try {
+                AuthResponse response = vault.auth().renewSelf();
+                this.vaultConfig = this.vaultConfig.token(response.getAuthClientToken());
+                this.vault = new Vault(this.vaultConfig.build());
+                this.renewable = response.getRenewable();
+                this.expirationTime = Clock.systemDefaultZone().instant().plusSeconds(response.getAuthLeaseDuration());
+            } catch (VaultException ve) {
+                LOGGER.error("Error renewing Vault token");
+            }
+        }
+    }
+}

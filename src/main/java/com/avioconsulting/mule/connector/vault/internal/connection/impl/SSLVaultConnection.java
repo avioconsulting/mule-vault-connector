@@ -1,28 +1,27 @@
 package com.avioconsulting.mule.connector.vault.internal.connection.impl;
 
-import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
 import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
 import org.mule.runtime.api.connection.ConnectionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class VaultSSLConnection implements VaultConnection {
+public class SSLVaultConnection extends AbstractVaultConnection {
 
-    private final String id;
-    private Vault vault;
-    private boolean valid = true;
+    private Logger LOGGER = LoggerFactory.getLogger(SSLVaultConnection.class);
 
-    public VaultSSLConnection(String id, String vaultToken, String vaultUrl, boolean verifySsl, String keyStorePath, String keyStorePassword, String trustStorePath) throws ConnectionException {
+    public SSLVaultConnection(String id, String vaultToken, String vaultUrl, boolean verifySsl, String keyStorePath, String keyStorePassword, String trustStorePath) throws ConnectionException {
         this.id = id;
         try {
 
             VaultConfig vaultConfig = new VaultConfig().address(vaultUrl);
 
             if (vaultToken != null && !vaultToken.isEmpty()) {
-
+                vaultConfig = vaultConfig.token(vaultToken);
             }
 
             SslConfig ssl = new SslConfig();
@@ -45,26 +44,13 @@ public class VaultSSLConnection implements VaultConnection {
             }
             ssl = ssl.verify(verifySsl);
 
-            vault = new Vault(new VaultConfig().address(vaultUrl).token(vaultToken).sslConfig(ssl.build()).build());
+            vault = new Vault(vaultConfig.sslConfig(ssl.build()).build());
+            String token = vault.auth().loginByCert().getAuthClientToken();
+            vault = new Vault(vaultConfig.token(token).build());
         } catch (VaultException ve) {
+            LOGGER.error("Error creating Vault connection",ve);
             throw new ConnectionException(ve.getMessage(), ve.getCause());
         }
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public Vault getVault() {
-        return vault;
-    }
-
-    public void invalidate() {
-        vault = null;
-        valid = false;
-    }
-
-    public boolean isValid() {
-        return valid;
-    }
 }

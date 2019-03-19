@@ -1,7 +1,7 @@
 package com.avioconsulting.mule.connector.vault.internal.connection.provider;
 
 import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.internal.connection.impl.VaultSSLConnection;
+import com.avioconsulting.mule.connector.vault.internal.connection.impl.SSLVaultConnection;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -52,7 +52,7 @@ public class VaultSSLConnectionProvider implements PoolingConnectionProvider<Vau
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        return new VaultSSLConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, verifySSL, keyStorePath, keyStorePassword, trustStorePath);
+        return new SSLVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, verifySSL, keyStorePath, keyStorePassword, trustStorePath);
     }
 
     @Override
