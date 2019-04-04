@@ -1,9 +1,10 @@
-package com.avioconsulting.mule.connector.vault.internal.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
 
-import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.internal.connection.impl.BasicVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.BasicVaultConnection;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.extension.api.annotation.Alias;
+import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -43,11 +44,19 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
   @Parameter
   private String vaultUrl;
 
+  @DisplayName("Vault PEM")
+  @Parameter
+  @Optional
+  private String pemFile;
 
+  @DisplayName("Trust Store")
+  @Parameter
+  @Optional
+  private String trustStoreFile;
 
   @Override
   public VaultConnection connect() throws ConnectionException {
-    return new BasicVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl);
+    return new BasicVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, pemFile, trustStoreFile);
   }
 
   @Override

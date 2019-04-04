@@ -1,6 +1,6 @@
-package com.avioconsulting.mule.connector.vault.internal.connection.impl;
+package com.avioconsulting.mule.connector.vault.provider.api.connection.impl;
 
-import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
@@ -8,6 +8,8 @@ import com.bettercloud.vault.response.AuthResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.net.URL;
 import java.time.Clock;
 import java.time.Instant;
 
@@ -74,5 +76,17 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 LOGGER.error("Error renewing Vault token");
             }
         }
+    }
+
+    protected boolean classpathResourceExists(String path) {
+        boolean fileExists = false;
+        URL fileUrl = getClass().getResource(path);
+        if (fileUrl != null) {
+            File file = new File(fileUrl.getFile());
+            if (file != null) {
+                fileExists = file.exists();
+            }
+        }
+        return fileExists;
     }
 }

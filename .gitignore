@@ -105,6 +105,7 @@ cmake-build-*/
 *.iws
 
 # IntelliJ
+.idea/
 out/
 
 # mpeltonen/sbt-idea plugin
@@ -196,3 +197,5 @@ reports/
 .mule/
 
 # End of https://www.gitignore.io/api/mule,java,eclipse,intellij
+
+ssl/

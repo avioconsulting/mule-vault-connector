@@ -5,11 +5,11 @@
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
     <vault:config name="config" configId="configId">
-        <vault:basic-connection vaultToken="s.uo18rIGCFexkcxOOJET97EPA" vaultUrl="http://localhost:8200" />
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" pemFile="${pemFile}" />
     </vault:config>
 
     <flow name="getSecretFlow">
-        <vault:get-secret config-ref="config" path="secret/apikey/google"/>
+        <vault:get-secret config-ref="config" path="secret/test/mysecret"/>
     </flow>
 
     <flow name="writeSecretFlow">

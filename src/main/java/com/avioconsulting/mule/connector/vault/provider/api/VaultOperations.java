@@ -1,8 +1,8 @@
-package com.avioconsulting.mule.connector.vault.internal;
+package com.avioconsulting.mule.connector.vault.provider.api;
 
 import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
 
-import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
 import com.bettercloud.vault.VaultException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +29,7 @@ public class VaultOperations {
    * Get a secret from Vault
    */
   @MediaType(value = APPLICATION_JSON, strict = false)
-  public String getSecret(@Connection VaultConnection connection, String path) throws VaultException {
+  public String getSecret(@Connection VaultConnection connection, String path) throws Exception {
 
     try {
       Gson gson = new GsonBuilder().create();
@@ -42,7 +42,7 @@ public class VaultOperations {
   }
 
   @MediaType(value = APPLICATION_JSON, strict = false)
-  public void writeSecret(@Connection VaultConnection connection, String path, String secret) throws VaultException {
+  public void writeSecret(@Connection VaultConnection connection, String path, String secret) throws Exception {
     try {
       Gson gson = new Gson();
       Type secretType = new TypeToken<Map<String,Object>>(){}.getType();

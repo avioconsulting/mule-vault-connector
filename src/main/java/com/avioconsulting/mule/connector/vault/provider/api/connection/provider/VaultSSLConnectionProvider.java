@@ -1,7 +1,9 @@
-package com.avioconsulting.mule.connector.vault.internal.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
 
-import com.avioconsulting.mule.connector.vault.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.internal.connection.impl.SSLVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.SSLVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.JKSProperties;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.PEMProperties;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -9,10 +11,10 @@ import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
-import org.mule.runtime.extension.api.annotation.param.display.Password;
-import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Random;
 
 @DisplayName("SSL Connection")
 @Alias("ssl-connection")
@@ -20,39 +22,25 @@ public class VaultSSLConnectionProvider implements PoolingConnectionProvider<Vau
 
     private final Logger LOGGER = LoggerFactory.getLogger(VaultSSLConnectionProvider.class);
 
-    @DisplayName("Vault Token")
-    @Optional
-    @Parameter
-    private String vaultToken;
-
     @DisplayName("Vault URL")
     @Parameter
     private String vaultUrl;
 
-    @DisplayName("Verify SSL")
+    @DisplayName("JKS Properties")
     @Parameter
-    private boolean verifySSL = true;
-
-    @DisplayName("KeyStore Path")
-    @Summary("Path to the KeyStore if using Vault's TLS Certificate auth backend for client side authentication. The KeyStore password must also be provided.")
     @Optional
-    @Parameter
-    private String keyStorePath;
+    private JKSProperties jksProperties;
 
-    @DisplayName("KeyStore Password")
-    @Optional
-    @Password
+    @DisplayName("PEM Properties")
     @Parameter
-    private String keyStorePassword;
+    @Optional
+    private PEMProperties pemProperties;
 
-    @DisplayName("TrustStore Path")
-    @Optional
-    @Parameter
-    private String trustStorePath;
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        return new SSLVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, verifySSL, keyStorePath, keyStorePassword, trustStorePath);
+        int connectionNumber = (new Random()).nextInt();
+        return new SSLVaultConnection("ssl_conn_" + connectionNumber, vaultUrl, jksProperties, pemProperties);
     }
 
     @Override

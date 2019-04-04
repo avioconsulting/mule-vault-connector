@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.connector.vault.internal.connection;
+package com.avioconsulting.mule.connector.vault.provider.api.connection;
 
 import com.bettercloud.vault.Vault;
 
