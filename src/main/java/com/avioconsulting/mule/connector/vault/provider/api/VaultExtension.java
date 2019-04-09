@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.connector.vault.internal;
+package com.avioconsulting.mule.connector.vault.provider.api;
 
 import org.mule.runtime.extension.api.annotation.Extension;
 import org.mule.runtime.extension.api.annotation.Configurations;

@@ -1,0 +1,37 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+
+    <vault:config name="basicConfig" configId="configId">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" trustStoreFile="${trustStoreFile}" />
+    </vault:config>
+
+    <vault:config name="jksConfig" configId="jksConfigId" >
+        <vault:ssl-connection vaultUrl="${vaultUrl}" >
+            <vault:jks-properties keyStoreFile="${keyStoreFile}" keyStorePassword="${keyStorePassword}" trustStoreFile="${trustStoreFile}" />
+        </vault:ssl-connection>
+    </vault:config>
+
+    <vault:config name="pemConfig" configId="pemConfigId" >
+        <vault:ssl-connection vaultUrl="${vaultUrl}" >
+            <vault:pem-properties pemFile="${pemFile}" clientPemFile="${clientPemFile}" clientKeyPemFile="${clientKeyPemFile}" />
+        </vault:ssl-connection>
+    </vault:config>
+
+    <flow name="getSecretFlowTrustStore">
+        <vault:get-secret config-ref="basicConfig" path="secret/test/mysecret"/>
+    </flow>
+
+    <flow name="getSecretFlowJksConfig">
+        <vault:get-secret config-ref="jksConfig" path="secret/test/mysecret"/>
+    </flow>
+
+    <flow name="getSecretFlowPemConfig">
+        <vault:get-secret config-ref="pemConfig" path="secret/test/mysecret"/>
+    </flow>
+
+
+</mule>
