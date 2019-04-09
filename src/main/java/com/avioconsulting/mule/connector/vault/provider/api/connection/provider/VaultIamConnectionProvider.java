@@ -31,7 +31,7 @@ public class VaultIamConnectionProvider implements PoolingConnectionProvider<Vau
             "authenticated. If a matching role is not found, login fails.")
     @Optional
     @Parameter
-    private String role;
+    private String vaultRole;
 
     @DisplayName("IAM Request URL")
     @Summary("Most likely https://sts.amazonaws.com/")
@@ -49,7 +49,7 @@ public class VaultIamConnectionProvider implements PoolingConnectionProvider<Vau
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        return new IamVaultConnection(vaultUrl + ":" + role + ":" + awsAuthMount, vaultUrl, awsAuthMount, role, iamRequestUrl, iamRequestBody, iamRequestHeaders);
+        return new IamVaultConnection(vaultUrl + ":" + vaultRole + ":" + awsAuthMount, vaultUrl, awsAuthMount, vaultRole, iamRequestUrl, iamRequestBody, iamRequestHeaders);
     }
 
     @Override

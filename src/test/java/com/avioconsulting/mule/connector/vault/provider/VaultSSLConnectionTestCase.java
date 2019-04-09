@@ -44,7 +44,7 @@ public class VaultSSLConnectionTestCase extends MuleArtifactFunctionalTestCase {
      */
     @Override
     protected String getConfigFile() {
-        return "test-ssl-mule-config.xml";
+        return "mule_config/test-ssl-mule-config.xml";
     }
 
     @Test

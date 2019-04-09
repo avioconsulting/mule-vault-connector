@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-
 public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
 
   @ClassRule
@@ -32,7 +31,7 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
    */
   @Override
   protected String getConfigFile() {
-    return "test-mule-config.xml";
+    return "mule_config/test-mule-config.xml";
   }
 
   @Test
