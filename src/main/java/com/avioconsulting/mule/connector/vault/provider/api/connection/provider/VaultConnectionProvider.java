@@ -2,6 +2,8 @@ package com.avioconsulting.mule.connector.vault.provider.api.connection.provider
 
 import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.BasicVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
@@ -12,6 +14,7 @@ import org.mule.runtime.api.connection.ConnectionProvider;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 
+import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,31 +35,28 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
 
   private final Logger LOGGER = LoggerFactory.getLogger(VaultConnectionProvider.class);
 
- /**
-  * A parameter that is always required to be configured.
-  * Make optional in the future
-  */
-  @DisplayName("Vault Token")
-  @Parameter
-  private String vaultToken;
-
   @DisplayName("Vault URL")
   @Parameter
   private String vaultUrl;
 
-  @DisplayName("Vault PEM")
+  @DisplayName("Secrets Engine Version")
   @Parameter
   @Optional
-  private String pemFile;
+  private EngineVersion engineVersion;
 
-  @DisplayName("Trust Store")
+  @DisplayName("Vault Token")
+  @Parameter
+  private String vaultToken;
+
+  @DisplayName("SSL Properties")
   @Parameter
   @Optional
-  private String trustStoreFile;
+  @Placement(tab = Placement.CONNECTION_TAB)
+  private SSLProperties sslProperties;
 
   @Override
   public VaultConnection connect() throws ConnectionException {
-    return new BasicVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, pemFile, trustStoreFile);
+    return new BasicVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, sslProperties, engineVersion);
   }
 
   @Override

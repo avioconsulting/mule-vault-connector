@@ -2,6 +2,7 @@ package com.avioconsulting.mule.connector.vault.provider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.hamcrest.core.StringStartsWith.startsWith;
 
 import com.avioconsulting.mule.connector.vault.util.VaultContainer;
 import org.junit.BeforeClass;
@@ -10,6 +11,7 @@ import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Base64;
 
 public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
 
@@ -21,9 +23,11 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
     container.initAndUnsealVault();
     container.enableKvSecretsV2();
     container.setupSampleSecret();
+    container.setupTransitEngine();
     System.setProperty("vaultUrl", container.getAddress());
     System.setProperty("vaultToken", container.getRootToken());
     System.setProperty("pemFile", VaultContainer.CERT_PEMFILE);
+    System.setProperty("cipherText", container.getCipherText());
   }
 
   /**
@@ -52,5 +56,31 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
     assertThat(payloadValue,containsString("name"));
   }
 
+  @Test
+  public void executeEncryptDataOperation() throws Exception {
+    String payloadValue = ((String) flowRunner("encryptDataFlow").run()
+            .getMessage()
+            .getPayload()
+            .getValue());
+    assertThat(payloadValue,startsWith("vault"));
+  }
+
+  @Test
+  public void executeDecryptDataOperation() throws Exception {
+    String payloadValue = ((String) flowRunner("decryptDataFlow").run()
+            .getMessage()
+            .getPayload()
+            .getValue());
+    assertThat(new String(Base64.getDecoder().decode(payloadValue)),containsString("plaintext"));
+  }
+
+  @Test
+  public void executeReencryptDataOperation() throws Exception {
+    String payloadValue = ((String) flowRunner("reEncryptFlow").run()
+            .getMessage()
+            .getPayload()
+            .getValue());
+    assertThat(payloadValue,startsWith("vault"));
+  }
 
 }

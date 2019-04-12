@@ -1,6 +1,8 @@
 package com.avioconsulting.mule.connector.vault.provider.api.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
+import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
@@ -76,6 +78,26 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 LOGGER.error("Error renewing Vault token");
             }
         }
+    }
+
+    public SslConfig getVaultSSLConfig(SSLProperties sslProperties) throws VaultException {
+        SslConfig ssl = new SslConfig();
+        if (sslProperties.getPemFile() != null && !sslProperties.getPemFile().isEmpty()) {
+            if (classpathResourceExists(sslProperties.getPemFile())) {
+                ssl = ssl.pemResource(sslProperties.getPemFile());
+            } else {
+                ssl = ssl.pemFile(new File(sslProperties.getPemFile()));
+            }
+            ssl = ssl.verify(true);
+        } else if (sslProperties.getTrustStoreFile() != null && !sslProperties.getTrustStoreFile().isEmpty()) {
+            if (classpathResourceExists(sslProperties.getTrustStoreFile())) {
+                ssl = ssl.trustStoreResource(sslProperties.getTrustStoreFile());
+            } else {
+                ssl = ssl.trustStoreFile(new File(sslProperties.getTrustStoreFile()));
+            }
+            ssl = ssl.verify(true);
+        }
+        return ssl;
     }
 
     protected boolean classpathResourceExists(String path) {

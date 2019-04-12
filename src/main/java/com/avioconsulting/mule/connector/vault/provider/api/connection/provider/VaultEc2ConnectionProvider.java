@@ -2,6 +2,8 @@ package com.avioconsulting.mule.connector.vault.provider.api.connection.provider
 
 import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.Ec2VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
 import com.bettercloud.vault.rest.Rest;
 import com.bettercloud.vault.rest.RestException;
 import com.bettercloud.vault.rest.RestResponse;
@@ -12,6 +14,7 @@ import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
+import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,11 @@ public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<Vau
     @DisplayName("Vault URL")
     @Parameter
     private String vaultUrl;
+
+    @DisplayName("Secrets Engine Version")
+    @Parameter
+    @Optional
+    private EngineVersion engineVersion;
 
     @DisplayName("Vault AWS Authentication Mount")
     @Summary("Mount point for AWS Authentication in Vault")
@@ -63,6 +71,12 @@ public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<Vau
     @Parameter
     private boolean useInstanceMetadata = false;
 
+    @DisplayName("SSL Properties")
+    @Parameter
+    @Optional
+    @Placement(tab = Placement.CONNECTION_TAB)
+    private SSLProperties sslProperties;
+
     @Override
     public VaultConnection connect() throws ConnectionException {
         if (useInstanceMetadata) {
@@ -80,7 +94,8 @@ public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<Vau
         } else {
             idBuilder.append(":" + identity);
         }
-        return new Ec2VaultConnection(idBuilder.toString(),vaultUrl,vaultRole,pkcs7,null,identity,signature,awsAuthMount);
+        return new Ec2VaultConnection(idBuilder.toString(),vaultUrl,vaultRole,pkcs7,null,identity,
+                signature,awsAuthMount, sslProperties, engineVersion);
     }
 
     @Override

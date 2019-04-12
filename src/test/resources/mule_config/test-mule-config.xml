@@ -4,17 +4,37 @@
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
-    <vault:config name="config" configId="configId">
-        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" pemFile="${pemFile}" />
+    <vault:config name="configV2" configId="configId">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
+            <vault:ssl-properties pemFile="${pemFile}" />
+        </vault:basic-connection>
+    </vault:config>
+
+    <vault:config name="configV1" configId="configId">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" engineVersion="v1">
+            <vault:ssl-properties pemFile="${pemFile}" />
+        </vault:basic-connection>
     </vault:config>
 
     <flow name="getSecretFlow">
-        <vault:get-secret config-ref="config" path="secret/test/mysecret"/>
+        <vault:get-secret config-ref="configV2" path="secret/test/mysecret"/>
     </flow>
 
     <flow name="writeSecretFlow">
-        <vault:write-secret config-ref="config" path="secret/test/mule-write" secret='{"name":"test"}'/>
-        <vault:get-secret config-ref="config" path="secret/test/mule-write" />
+        <vault:write-secret config-ref="configV2" path="secret/test/mule-write" secret='{"name":"test"}'/>
+        <vault:get-secret config-ref="configV2" path="secret/test/mule-write" />
+    </flow>
+
+    <flow name="encryptDataFlow">
+        <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="plaintext" />
+    </flow>
+
+    <flow name="decryptDataFlow">
+        <vault:decrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="${cipherText}" />
+    </flow>
+
+    <flow name="reEncryptFlow">
+        <vault:reencrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="${cipherText}" />
     </flow>
 
 

@@ -44,6 +44,7 @@ public class VaultContainer implements TestRule {
 
     private String unsealKey;
     private String rootToken;
+    private String cipherText;
     private boolean kv2Enabled = false;
 
     public VaultContainer() {
@@ -108,6 +109,16 @@ public class VaultContainer implements TestRule {
         }
     }
 
+    public void setupTransitEngine() throws IOException, InterruptedException {
+        runCommand("vault", "login", "-ca-cert=" + CONTAINER_CERT_PEMFILE, rootToken);
+        runCommand("vault", "secrets", "enable", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "-path=transit", "transit");
+        runCommand("vault", "write", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "-f", "transit/keys/testKey");
+        final Container.ExecResult result = runCommand("vault", "write", "-ca-cert=" + CONTAINER_CERT_PEMFILE, "transit/encrypt/testKey", "plaintext=cGxhaW50ZXh0Cg==");
+        final String[] lines = result.getStdout().split(System.lineSeparator());
+        this.cipherText = lines[2].replace("ciphertext    ", "");
+        runCommand("vault", "secrets", "list", "-ca-cert=" + CONTAINER_CERT_PEMFILE);
+    }
+
     /**
      * Prepares the Vault server for testing of the TLS Certificate auth backend (i.e. mounts the backend and registers
      * the certificate and private key for client auth).
@@ -148,5 +159,9 @@ public class VaultContainer implements TestRule {
 
     public String getRootToken() {
         return rootToken;
+    }
+
+    public String getCipherText() {
+        return cipherText;
     }
 }

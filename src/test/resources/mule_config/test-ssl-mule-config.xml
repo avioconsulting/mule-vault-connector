@@ -5,24 +5,38 @@
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
 
-    <vault:config name="basicConfig" configId="configId">
-        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" trustStoreFile="${trustStoreFile}" />
+    <vault:config name="basicTrustStoreConfig" configId="configId">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
+            <vault:ssl-properties trustStoreFile="${trustStoreFile}" />
+        </vault:basic-connection>
+    </vault:config>
+
+    <vault:config name="basicPemConfig" configId="configId">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
+            <vault:ssl-properties pemFile="${pemFile}" />
+        </vault:basic-connection>
     </vault:config>
 
     <vault:config name="jksConfig" configId="jksConfigId" >
-        <vault:ssl-connection vaultUrl="${vaultUrl}" >
-            <vault:jks-properties keyStoreFile="${keyStoreFile}" keyStorePassword="${keyStorePassword}" trustStoreFile="${trustStoreFile}" />
-        </vault:ssl-connection>
+        <vault:tls-connection vaultUrl="${vaultUrl}" >
+            <vault:ssl-properties trustStoreFile="${trustStoreFile}" />
+            <vault:jks-properties keyStoreFile="${keyStoreFile}" keyStorePassword="${keyStorePassword}" />
+        </vault:tls-connection>
     </vault:config>
 
     <vault:config name="pemConfig" configId="pemConfigId" >
-        <vault:ssl-connection vaultUrl="${vaultUrl}" >
-            <vault:pem-properties pemFile="${pemFile}" clientPemFile="${clientPemFile}" clientKeyPemFile="${clientKeyPemFile}" />
-        </vault:ssl-connection>
+        <vault:tls-connection vaultUrl="${vaultUrl}" >
+            <vault:ssl-properties pemFile="${pemFile}" />
+            <vault:pem-properties clientPemFile="${clientPemFile}" clientKeyPemFile="${clientKeyPemFile}" />
+        </vault:tls-connection>
     </vault:config>
 
+    <flow name="getSecretFlowPemFile">
+        <vault:get-secret config-ref="basicPemConfig" path="secret/test/mysecret"/>
+    </flow>
+
     <flow name="getSecretFlowTrustStore">
-        <vault:get-secret config-ref="basicConfig" path="secret/test/mysecret"/>
+        <vault:get-secret config-ref="basicTrustStoreConfig" path="secret/test/mysecret"/>
     </flow>
 
     <flow name="getSecretFlowJksConfig">

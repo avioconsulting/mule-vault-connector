@@ -1,11 +1,15 @@
 package com.avioconsulting.mule.connector.vault.provider.api.connection.impl;
 
 
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
 import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
 import org.mule.runtime.api.connection.ConnectionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Instant;
@@ -15,41 +19,33 @@ import java.time.Instant;
  */
 public final class BasicVaultConnection extends AbstractVaultConnection {
 
-  public BasicVaultConnection(String id, String vaultToken, String vaultUrl, String pemFile, String trustStoreFile) throws ConnectionException{
+  private final Logger LOGGER = LoggerFactory.getLogger(BasicVaultConnection.class);
+
+  public BasicVaultConnection(String id, String vaultToken, String vaultUrl, SSLProperties sslProperties,
+                              EngineVersion engineVersion) throws ConnectionException {
     this.id = id;
     try {
-      vaultConfig = new VaultConfig().address(vaultUrl);
-      SslConfig ssl = new SslConfig();
-      if (pemFile != null && !pemFile.isEmpty()) {
-        if (classpathResourceExists(pemFile)) {
-          ssl = ssl.pemResource(pemFile);
-        } else {
-          ssl = ssl.pemFile(new File(pemFile));
-        }
-        ssl = ssl.verify(true);
-      } else if (trustStoreFile != null && !trustStoreFile.isEmpty()) {
-        if (classpathResourceExists(trustStoreFile)) {
-          ssl = ssl.trustStoreResource(trustStoreFile);
-        } else {
-          ssl = ssl.trustStoreFile(new File(trustStoreFile));
-        }
-        ssl = ssl.verify(true);
+      this.vaultConfig = new VaultConfig().address(vaultUrl);
+      if (engineVersion != null) {
+        this.vaultConfig = this.vaultConfig.engineVersion(engineVersion.getEngineVersionNumber());
       }
-      vault = new Vault(vaultConfig.token(vaultToken).sslConfig(ssl.build()).build());
-      renewable = vault.auth().lookupSelf().isRenewable();
-      long creationTimeSec = vault.auth().lookupSelf().getCreationTime();
-      long ttl = vault.auth().lookupSelf().getTTL();
+      SslConfig ssl = getVaultSSLConfig(sslProperties);
+      this.vault = new Vault(this.vaultConfig.token(vaultToken).sslConfig(ssl.build()).build());
+      renewable = this.vault.auth().lookupSelf().isRenewable();
+      long creationTimeSec = this.vault.auth().lookupSelf().getCreationTime();
+      long ttl = this.vault.auth().lookupSelf().getTTL();
 
       if (creationTimeSec > 0) {
         Instant creationTime = Instant.ofEpochSecond(creationTimeSec);
         if (ttl > 0) {
-          expirationTime = creationTime.plusSeconds(ttl);
+          this.expirationTime = creationTime.plusSeconds(ttl);
         } else {
-          expirationTime = null;
+          this.expirationTime = null;
         }
       }
 
     } catch (VaultException ve) {
+      LOGGER.error("Error establishing Vault connection", ve);
       throw new ConnectionException(ve.getMessage(), ve.getCause());
     }
   }

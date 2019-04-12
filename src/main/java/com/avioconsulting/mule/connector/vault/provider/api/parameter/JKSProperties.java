@@ -19,11 +19,6 @@ public class JKSProperties {
     @Parameter
     private String keyStorePassword;
 
-    @DisplayName("TrustStore File")
-    @Path
-    @Parameter
-    private String trustStoreFile;
-
     public String getKeyStoreFile() {
         return keyStoreFile;
     }
@@ -40,22 +35,12 @@ public class JKSProperties {
         this.keyStorePassword = keyStorePassword;
     }
 
-    public String getTrustStoreFile() {
-        return trustStoreFile;
-    }
-
-    public void setTrustStoreFile(String trustStoreFile) {
-        this.trustStoreFile = trustStoreFile;
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("keyStoreFile: ");
         sb.append(keyStoreFile);
         sb.append(", keyStorePassword: ");
         sb.append(keyStorePassword);
-        sb.append(", trustStoreFile: ");
-        sb.append(trustStoreFile);
         return  sb.toString();
     }
 }

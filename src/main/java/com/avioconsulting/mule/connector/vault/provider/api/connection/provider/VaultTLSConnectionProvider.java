@@ -1,46 +1,55 @@
 package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
 
 import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.SSLVaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.JKSProperties;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.PEMProperties;
+import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.TLSVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.*;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
+import org.mule.runtime.extension.api.annotation.param.ParameterGroup;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
+import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
-@DisplayName("SSL Connection")
-@Alias("ssl-connection")
-public class VaultSSLConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
+@DisplayName("TLS Connection")
+@Alias("tls-connection")
+public class VaultTLSConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(VaultSSLConnectionProvider.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(VaultTLSConnectionProvider.class);
 
     @DisplayName("Vault URL")
     @Parameter
     private String vaultUrl;
 
-    @DisplayName("JKS Properties")
+    @DisplayName("Secrets Engine Version")
     @Parameter
     @Optional
-    private JKSProperties jksProperties;
+    private EngineVersion engineVersion;
 
-    @DisplayName("PEM Properties")
+    @ParameterGroup(name="TLS Authentication Parameters")
+    private TLSAuthProperties tlsAuthProperties;
+
+    @DisplayName("SSL Properties")
     @Parameter
     @Optional
-    private PEMProperties pemProperties;
-
+    @Placement(tab = Placement.CONNECTION_TAB)
+    private SSLProperties sslProperties;
 
     @Override
     public VaultConnection connect() throws ConnectionException {
         int connectionNumber = (new Random()).nextInt();
-        return new SSLVaultConnection("ssl_conn_" + connectionNumber, vaultUrl, jksProperties, pemProperties);
+        return new TLSVaultConnection("tls_conn_" + connectionNumber,
+                vaultUrl,
+                tlsAuthProperties.getJksProperties(),
+                tlsAuthProperties.getPemProperties(),
+                sslProperties,
+                engineVersion);
     }
 
     @Override

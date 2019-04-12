@@ -57,6 +57,15 @@ public class VaultSSLConnectionTestCase extends MuleArtifactFunctionalTestCase {
     }
 
     @Test
+    public void executeGetSecretWithPemFile() throws Exception {
+        String payloadValue = ((String) flowRunner("getSecretFlowPemFile").run()
+                .getMessage()
+                .getPayload()
+                .getValue());
+        assertThat(payloadValue,containsString("test_value1") );
+    }
+
+    @Test
     public void executeGetSecretWithJKSConfig() throws Exception {
         String payloadValue = ((String) flowRunner("getSecretFlowJksConfig").run()
                 .getMessage()
