@@ -21,16 +21,19 @@ Attributes:
 
 *	vaultUrl - Vault Base URL (i.e. https://localhost:8200)
 *	vaultToken - Token to use to authenticate to Vault
+*	engineVersion - (Optional) the version of the secrets engine to use
 *	pemFile - (Optional) An X.509 certificate, to use when communicating with Vault over HTTPS
 *	trustStoreFile - (Optional) JKS Trust Store containing Vault Server certificate
 
 ```xml
 <vault:config name="config" configId="configId">
-	<vault:basic-connection vaultUrl="${vaultUrl}" vaultToken="${vaultToken}" pemFile="${pemFile}" />
+	<vault:basic-connection vaultUrl="${vaultUrl}" vaultToken="${vaultToken}" engineVersion="v1">
+		<vault:ssl-properties pemFile="${pemFile}"/>
+	</vault:basic-connection>
 </vault:config>
 ```
 
-##### SSL Connection
+##### TLS Connection
 Use this connection type to authenticate using Vault's TLS Certificate Authentication backend.
 
 ###### Using Java Key Store
@@ -43,9 +46,10 @@ Attributes:
 
 ```xml
 <vault:config name="jksConfig" configId="jksConfigId" >
-    <vault:ssl-connection vaultUrl="${vaultUrl}" >
-        <vault:jks-properties keyStoreFile="${keyStoreFile}" keyStorePassword="${keyStorePassword}" trustStoreFile="${trustStoreFile}" />
-    </vault:ssl-connection>
+    <vault:tls-connection vaultUrl="${vaultUrl}">
+		<vault:ssl-properties trustStoreFile="${trustStoreFile}"/>
+        <vault:jks-properties keyStoreFile="${keyStoreFile}" keyStorePassword="${keyStorePassword}"/>
+    </vault:tls-connection>
 </vault:config>
 ```
 
@@ -59,9 +63,10 @@ Attributes:
 
 ```xml
 <vault:config name="pemConfig" configId="pemConfigId" >
-    <vault:ssl-connection vaultUrl="${vaultUrl}" >
-        <vault:pem-properties pemFile="${pemFile}" clientPemFile="${clientPemFile}" clientKeyPemFile="${clientKeyPemFile}" />
-    </vault:ssl-connection>
+    <vault:tls-connection vaultUrl="${vaultUrl}" >
+		<vault:ssl-properties pemFile="${pemFile}" />
+        <vault:pem-properties clientPemFile="${clientPemFile}" clientKeyPemFile="${clientKeyPemFile}" />
+    </vault:tls-connection>
 </vault:config>
 ```
 
@@ -116,6 +121,8 @@ Attributes:
 </vault:config>
 ```
 
+## Operations
+
 ### Getting Secrets
 Drag a "Get secret" component from the palette into your flow. Secrets will be retrieved in JSON format.
 
@@ -142,7 +149,51 @@ Attributes:
 <vault:write-secret doc:name="Write secret" config-ref="Vault_Config" path="secret/test/mysecret" secret="#[vars.secret]"/>
 ```
 
-### Publishing to a Private Exchange
+### Encrypting Data
+Drag an "Encrypt Data" component from the palette into your flow. The secret engine being used in the connection must be version v1 to use the encryption features. The response will be the encrypted value of the data.
+
+Attributes:
+
+*	config-ref - the global element configuration to use to connect to Vault
+*	transitMountpoint - Vault mount point for the transit secret engine
+*	keyName - the name of the key to be used for encryption
+*	plaintext - the data to be encrypted. The default maximum is 32MB
+
+```xml
+<vault:encrypt-data doc:name="Encrypt data" config-ref="Vault_Config" transitMountpoint="transit" keyName="mykey" plaintext="#[vars.myvar]"/>
+```
+
+### Decrypting Data
+Drag an "Decrypt Data" component from the palette into your flow. The secret engine being used in the connection must be version v1 to use the encryption features. The response will be the decrypted value of the data.
+
+Attributes:
+
+*	config-ref - the global element configuration to use to connect to Vault
+*	transitMountpoint - Vault mount point for the transit secret engine
+*	keyName - the name of the key to be used for encryption
+*	ciphertext - the data to be decrypted. The default maximum is 32MB
+
+```xml
+<vault:decrypt-data doc:name="Decrypt data" config-ref="Vault_Config" transitMountpoint="transit" keyName="mykey" ciphertext="vault:v2:9elCvYJCKvqK33KWgB/VwImq5EE7Of2fYEnjfg8xC+BDyIv4DV1j"/>
+```
+
+### Re-encrypting Data
+Drag an "Reencrypt Data" component from the palette into your flow. The secret engine being used in the connection must be version v1 to use the encryption features. The response will be the encrypted value of the data, encrypted under the new key.
+
+Attributes:
+
+*	config-ref - the global element configuration to use to connect to Vault
+*	transitMountpoint - Vault mount point for the transit secret engine
+*	keyName - the name of the key to be used for encryption
+*	ciphertext - the encrypted data to be reencrypted. The default maximum is 32MB
+
+```xml
+<vault:reencrypt-data doc:name="Reencrypt data" config-ref="Vault_Config" transitMountpoint="transit" keyName="mykey" ciphertext="vault:v2:9elCvYJCKvqK33KWgB/VwImq5EE7Of2fYEnjfg8xC+BDyIv4DV1j"/>
+```
+
+
+
+## Publishing to a Private Exchange
 
 To publish to a private exchange, some updates are necessary in the `pom.xml` file and your Maven `settings.xml`.
 
