@@ -71,7 +71,7 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
             .getMessage()
             .getPayload()
             .getValue());
-    assertThat(new String(Base64.getDecoder().decode(payloadValue)),containsString("plaintext"));
+    assertThat(payloadValue,containsString("plaintext"));
   }
 
   @Test

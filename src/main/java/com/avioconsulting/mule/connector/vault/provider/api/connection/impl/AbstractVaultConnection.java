@@ -82,20 +82,22 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     public SslConfig getVaultSSLConfig(SSLProperties sslProperties) throws VaultException {
         SslConfig ssl = new SslConfig();
-        if (sslProperties.getPemFile() != null && !sslProperties.getPemFile().isEmpty()) {
-            if (classpathResourceExists(sslProperties.getPemFile())) {
-                ssl = ssl.pemResource(sslProperties.getPemFile());
-            } else {
-                ssl = ssl.pemFile(new File(sslProperties.getPemFile()));
+        if (sslProperties != null) {
+            if (sslProperties.getPemFile() != null && !sslProperties.getPemFile().isEmpty()) {
+                if (classpathResourceExists(sslProperties.getPemFile())) {
+                    ssl = ssl.pemResource(sslProperties.getPemFile());
+                } else {
+                    ssl = ssl.pemFile(new File(sslProperties.getPemFile()));
+                }
+                ssl = ssl.verify(true);
+            } else if (sslProperties.getTrustStoreFile() != null && !sslProperties.getTrustStoreFile().isEmpty()) {
+                if (classpathResourceExists(sslProperties.getTrustStoreFile())) {
+                    ssl = ssl.trustStoreResource(sslProperties.getTrustStoreFile());
+                } else {
+                    ssl = ssl.trustStoreFile(new File(sslProperties.getTrustStoreFile()));
+                }
+                ssl = ssl.verify(true);
             }
-            ssl = ssl.verify(true);
-        } else if (sslProperties.getTrustStoreFile() != null && !sslProperties.getTrustStoreFile().isEmpty()) {
-            if (classpathResourceExists(sslProperties.getTrustStoreFile())) {
-                ssl = ssl.trustStoreResource(sslProperties.getTrustStoreFile());
-            } else {
-                ssl = ssl.trustStoreFile(new File(sslProperties.getTrustStoreFile()));
-            }
-            ssl = ssl.verify(true);
         }
         return ssl;
     }

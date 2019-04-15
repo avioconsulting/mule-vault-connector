@@ -109,9 +109,9 @@ public class VaultOperations {
     try {
       Map<String, Object> data = new HashMap<>();
       data.put("ciphertext", ciphertext);
-      System.out.println("Path: " + transitMountpoint + "/decrypt/" + keyName);
       LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/decrypt/" + keyName, data);
-      return response.getData().get("plaintext");
+      String decrypted = new String(Base64.getDecoder().decode(response.getData().get("plaintext")));
+      return decrypted;
     } catch (VaultException ve) {
       LOGGER.error("Error encrypting data with Vault", ve);
       throw ve;
@@ -133,7 +133,6 @@ public class VaultOperations {
     try {
       Map<String, Object> data = new HashMap<>();
       data.put("ciphertext", ciphertext);
-      System.out.println("Path: " + transitMountpoint + "/rewrap/" + keyName);
       LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/rewrap/" + keyName, data);
       return response.getData().get("ciphertext");
     } catch (VaultException ve) {
