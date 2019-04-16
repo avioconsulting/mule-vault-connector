@@ -6,6 +6,9 @@ import org.mule.runtime.extension.api.annotation.param.display.Password;
 import org.mule.runtime.extension.api.annotation.param.display.Path;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 
+/**
+ * Properties used for TLS authentication via Java KeyStores
+ */
 public class JKSProperties {
 
     @DisplayName("KeyStore File")

@@ -5,6 +5,10 @@ import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 
+/**
+ * Grouping of properties used for TLS authentication.
+ * Only one of the two parameters is needed
+ */
 @ExclusiveOptionals
 public class TLSAuthProperties {
 

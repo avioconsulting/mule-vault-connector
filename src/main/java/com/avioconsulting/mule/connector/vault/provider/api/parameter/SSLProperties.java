@@ -1,16 +1,14 @@
 package com.avioconsulting.mule.connector.vault.provider.api.parameter;
 
-import com.bettercloud.vault.SslConfig;
-import com.bettercloud.vault.VaultException;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Path;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 
-import java.io.File;
-import java.net.URL;
-
+/**
+ * Properties to be used for TLS/SSL connections to Vault
+ */
 public class SSLProperties {
 
     @DisplayName("Vault PEM File")

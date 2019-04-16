@@ -11,16 +11,27 @@ import org.mule.runtime.api.connection.ConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.time.Instant;
 
 /**
- * This class represents an extension connection just as example (there is no real connection with anything here c:).
+ * A connection to Vault using Token Authentication
+ *
+ * @author Adam Mead
  */
 public final class BasicVaultConnection extends AbstractVaultConnection {
 
   private final Logger LOGGER = LoggerFactory.getLogger(BasicVaultConnection.class);
 
+  /**
+   * Construct a connection using a Vault Token
+   *
+   * @param id             ID for the connection
+   * @param vaultToken     Token to use for authentication
+   * @param vaultUrl       URL for the Vault server (https://host:port)
+   * @param sslProperties  {@link SSLProperties} to use to make the connection
+   * @param engineVersion  The version of the secret engine to use, defaulting to Version 2
+   * @throws ConnectionException if there is a problem connecting to Vault
+   */
   public BasicVaultConnection(String id, String vaultToken, String vaultUrl, SSLProperties sslProperties,
                               EngineVersion engineVersion) throws ConnectionException {
     this.id = id;

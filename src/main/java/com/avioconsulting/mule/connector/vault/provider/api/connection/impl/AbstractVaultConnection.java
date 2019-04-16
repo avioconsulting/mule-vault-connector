@@ -15,6 +15,11 @@ import java.net.URL;
 import java.time.Clock;
 import java.time.Instant;
 
+/**
+ * Abstract class implementing common methods on a VaultConnection
+ *
+ * @author Adam Mead
+ */
 public abstract class AbstractVaultConnection implements VaultConnection {
 
     private Logger LOGGER = LoggerFactory.getLogger(AbstractVaultConnection.class);
@@ -80,6 +85,13 @@ public abstract class AbstractVaultConnection implements VaultConnection {
         }
     }
 
+    /**
+     * Construct {@link SslConfig} given the ssl-properties element for HTTPS connections to Vault
+     *
+     * @param sslProperties properties in the ssl-properties element
+     * @return {@link SslConfig} constructed from the ssl-properties attributes
+     * @throws VaultException if there is an error constructing the {@link SslConfig} object
+     */
     public SslConfig getVaultSSLConfig(SSLProperties sslProperties) throws VaultException {
         SslConfig ssl = new SslConfig();
         if (sslProperties != null) {
@@ -102,6 +114,12 @@ public abstract class AbstractVaultConnection implements VaultConnection {
         return ssl;
     }
 
+    /**
+     * Determine if the path resides on the classpath
+     *
+     * @param path the path to the file
+     * @return true if the file is on the classpath
+     */
     protected boolean classpathResourceExists(String path) {
         boolean fileExists = false;
         URL fileUrl = getClass().getResource(path);

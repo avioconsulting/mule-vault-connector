@@ -17,6 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Random;
 
+/**
+ * This class provides {@link TLSVaultConnection} instances and the functionality to disconnect and validate those
+ * connections. This is a {@link PoolingConnectionProvider} which will pool and reuse connections.
+ */
 @DisplayName("TLS Connection")
 @Alias("tls-connection")
 public class VaultTLSConnectionProvider implements PoolingConnectionProvider<VaultConnection> {

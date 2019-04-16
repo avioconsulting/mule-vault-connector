@@ -4,13 +4,13 @@
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
-    <vault:config name="configV2" configId="configId">
+    <vault:config name="configV2" >
         <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
             <vault:ssl-properties pemFile="${pemFile}" />
         </vault:basic-connection>
     </vault:config>
 
-    <vault:config name="configV1" configId="configId">
+    <vault:config name="configV1" >
         <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" engineVersion="v1">
             <vault:ssl-properties pemFile="${pemFile}" />
         </vault:basic-connection>

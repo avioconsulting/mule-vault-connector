@@ -1,11 +1,13 @@
 package com.avioconsulting.mule.connector.vault.provider.api.parameter;
 
-import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Path;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 
+/**
+ * Properties used for TLS authentication via PEM files
+ */
 public class PEMProperties {
 
     @DisplayName("Client PEM File")

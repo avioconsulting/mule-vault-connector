@@ -4,7 +4,7 @@
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
-    <vault:config name="config" configId="configId" >
+    <vault:config name="config" >
         <vault:ec2-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" useInstanceMetadata="false" identity="${identityDoc}" signature="${identitySig}"/>
     </vault:config>
 

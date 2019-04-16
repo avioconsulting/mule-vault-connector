@@ -14,6 +14,10 @@ import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 
+/**
+ * This class provides {@link IamVaultConnection} instances and the functionality to disconnect and validate those
+ * connections. This is a {@link PoolingConnectionProvider} which will pool and reuse connections.
+ */
 @DisplayName("IAM Connection")
 @Alias("iam-connection")
 public class VaultIamConnectionProvider implements PoolingConnectionProvider<VaultConnection> {

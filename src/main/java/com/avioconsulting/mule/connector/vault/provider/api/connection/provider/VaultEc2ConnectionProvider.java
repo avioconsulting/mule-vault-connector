@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * This class provides {@link Ec2VaultConnection} instances and the functionality to disconnect and validate those
+ * connections. This is a {@link PoolingConnectionProvider} which will pool and reuse connections.
+ */
 @DisplayName("EC2 Connection")
 @Alias("ec2-connection")
 public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
@@ -77,6 +81,13 @@ public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<Vau
     @Placement(tab = Placement.CONNECTION_TAB)
     private SSLProperties sslProperties;
 
+    /**
+     * Constructs an {@link Ec2VaultConnection}. When useInstanceMetadata is true, the PKCS7 value is looked up from
+     * the AWS Metadata Service
+     *
+     * @return an {@link Ec2VaultConnection}
+     * @throws ConnectionException
+     */
     @Override
     public VaultConnection connect() throws ConnectionException {
         if (useInstanceMetadata) {
@@ -113,7 +124,8 @@ public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<Vau
     }
 
     /**
-     * EC2 Provides a service to retrieve the instance identity
+     * EC2 Provides a service to retrieve the instance identity. This method uses that service to look up the PKCS7.
+     *
      * @return the PKCS7 value with the '\n' characters removed
      */
     private String lookupPKCS7() {

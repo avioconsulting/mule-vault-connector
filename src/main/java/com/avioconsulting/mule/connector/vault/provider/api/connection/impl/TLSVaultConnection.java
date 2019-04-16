@@ -14,10 +14,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+/**
+ * A connection to Vault using TLS authentication
+ *
+ * @author Adam Mead
+ */
 public class TLSVaultConnection extends AbstractVaultConnection {
 
     private Logger LOGGER = LoggerFactory.getLogger(TLSVaultConnection.class);
 
+    /**
+     * Create a connection, authenticating via TLS
+     * @param id                    ID for the connection
+     * @param vaultUrl              URL for the Vault server (https://host:port)
+     * @param jksProperties         Java Keystore properties to use for authentication
+     * @param pemProperties         PEM properties to use for authentication
+     * @param sslProperties         {@link SSLProperties} to use to make the connection
+     * @param engineVersion         The version of the secret engine to use, defaulting to Version 2
+     * @throws ConnectionException  if there is an issue connecting to Vault
+     */
     public TLSVaultConnection(String id, String vaultUrl, JKSProperties jksProperties, PEMProperties pemProperties,
                               SSLProperties sslProperties, EngineVersion engineVersion)
             throws ConnectionException {
