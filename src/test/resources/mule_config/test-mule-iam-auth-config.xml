@@ -1,0 +1,15 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+    <vault:config name="config" >
+        <vault:iam-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" iamRequestUrl="${iamReqUrl}" iamRequestBody="${iamReqBody}" iamRequestHeaders="${iamReqHeaders}"/>
+    </vault:config>
+
+    <flow name="getSecretFlow">
+        <vault:get-secret config-ref="config" path="secret/test/mysecret"/>
+    </flow>
+
+</mule>
