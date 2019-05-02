@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="get-secret-input" format="json">
+      <types:shape format="weave" example="examples/getSecret.json"><![CDATA[%dw 2.0
+type get_secret_input = {| path: String |} {"MetadataFormat": "json",
+"example": "{\"path\":\"secret\/my-secret\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="write-secret-input" format="json">
+      <types:shape format="weave" example="examples/writeSecret.json"><![CDATA[%dw 2.0
+type write_secret_input = {|
+  path: String, 
+  secret: String
+|} {"MetadataFormat": "json",
+"example": "{\"path\":\"secret\/path-to-secret\",\"secret\":\"{ 'attr1': 'Sample Secret to be passed in as a string'}\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="plaintext" format="json">
+      <types:shape format="weave" example="examples/plaintext.json"><![CDATA[%dw 2.0
+type plaintext = {| plaintext: String |} {"MetadataFormat": "json",
+"example": "{\"plaintext\":\"THIS IS SOME TEXT\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="ciphertext" format="json">
+      <types:shape format="weave" example="examples/ciphertext.json"><![CDATA[%dw 2.0
+type ciphertext = {| ciphertext: String |} {"MetadataFormat": "json",
+"example": "{\"ciphertext\":\"vault:v1:asdfasflkjeklghjlakjsdfsafsd\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#1b00dd7b-5798-42ba-9b0d-e3da2db64e55">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="get-secret-input"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#14e46207-f878-4b87-8f02-26775df214c4">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="write-secret-input"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#91339bf7-4498-443b-b5da-7c07c007ce9e">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="plaintext"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#b71f3a11-b286-4010-94ea-c98c897aca0d">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="ciphertext"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#f8db4217-a549-4225-a184-a165936b63c6">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="ciphertext"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

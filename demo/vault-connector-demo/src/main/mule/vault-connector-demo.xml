@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vault="http://www.mulesoft.org/schema/mule/vault" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+	<http:listener-config name="HTTP_Listener" doc:name="HTTP Listener config" doc:id="507b6dd5-7e67-4c3d-b377-f3c9f0775abe">
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<vault:config name="Vault_Config_KV" doc:name="Vault Config" doc:id="b9354687-5b06-4b2a-bca8-f54774200cb3" >
+		<vault:basic-connection vaultUrl="http://localhost:8200" engineVersion="v2" vaultToken="devroot" />
+	</vault:config>
+	<vault:config name="Vault_Config_Transit" doc:name="Vault Config" doc:id="1afb8d42-e96c-4ee9-9eeb-739ddaa37b20" >
+		<vault:basic-connection vaultUrl="http://localhost:8200" engineVersion="v1" vaultToken="devroot" />
+	</vault:config>
+	<flow name="get-secret-flow" doc:id="99007bbb-813a-4b2b-b2a9-6c919d728727" >
+		<http:listener doc:name="Listener" doc:id="1b00dd7b-5798-42ba-9b0d-e3da2db64e55" config-ref="HTTP_Listener" allowedMethods="POST" path="getSecret" outputMimeType="application/json"/>
+		<vault:get-secret doc:name="Get secret" doc:id="108252d1-7011-46a6-bf34-7563763b5e72" config-ref="Vault_Config_KV" path="#[payload.path]"/>
+	</flow>
+	<flow name="write-secret-flow" doc:id="14508bb7-a74f-4e32-824d-647a2b7d54bf" >
+		<http:listener doc:name="Listener" doc:id="14e46207-f878-4b87-8f02-26775df214c4" config-ref="HTTP_Listener" path="writeSecret" allowedMethods="POST" outputMimeType="application/json"/>
+		<vault:write-secret doc:name="Write secret" doc:id="f249c44c-c77c-4e44-9db1-9c59909d1a05" config-ref="Vault_Config_KV" path="#[payload.path]" secret="#[payload.secret]"/>
+	</flow>
+	<flow name="encrypt-data-flow" doc:id="26b52210-cdab-46d7-90c0-7c4e1f566b8a" >
+		<http:listener doc:name="Listener" doc:id="91339bf7-4498-443b-b5da-7c07c007ce9e" config-ref="HTTP_Listener" path="encrypt" allowedMethods="POST" outputMimeType="application/json"/>
+		<vault:encrypt-data doc:name="Encrypt data" doc:id="d0b7d636-af3a-4012-b0e1-d306375336b0" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" plaintext="#[payload.plaintext]"/>
+	</flow>
+	<flow name="decrypt-data-flow" doc:id="b28b0914-a941-4db0-9d13-31989dc66dfd" >
+		<http:listener doc:name="Listener" doc:id="b71f3a11-b286-4010-94ea-c98c897aca0d" config-ref="HTTP_Listener" path="decrypt" allowedMethods="POST" outputMimeType="application/json"/>
+		<vault:decrypt-data doc:name="Decrypt data" doc:id="e7294662-282b-4366-8d73-03a6617d63dc" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" ciphertext="#[payload.ciphertext]"/>
+	</flow>
+	<flow name="reencrypt-data-flow" doc:id="64061d91-fd7f-43bb-9507-888f118379cc" >
+		<http:listener doc:name="Listener" doc:id="f8db4217-a549-4225-a184-a165936b63c6" config-ref="HTTP_Listener" path="reencrypt" allowedMethods="POST" outputMimeType="application/json"/>
+		<vault:reencrypt-data doc:name="Reencrypt data" doc:id="6f9003fb-122c-4485-84c7-c0ce8985e36d" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" ciphertext="#[payload.ciphertext]"/>
+	</flow>
+</mule>
