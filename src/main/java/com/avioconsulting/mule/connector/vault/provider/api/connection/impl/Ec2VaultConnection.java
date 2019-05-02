@@ -59,7 +59,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
             this.renewable = response.getRenewable();
             this.expirationTime = Clock.systemDefaultZone().instant().plusSeconds(response.getAuthLeaseDuration());
             this.vault = new Vault(this.vaultConfig.build());
-
+            this.valid = true;
         } catch (VaultException ve) {
             LOGGER.error("Error connecting to Vault", ve);
             throw new ConnectionException(ve);

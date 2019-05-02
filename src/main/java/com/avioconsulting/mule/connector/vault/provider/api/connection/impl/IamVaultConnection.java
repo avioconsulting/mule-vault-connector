@@ -65,6 +65,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
             this.expirationTime = Clock.systemDefaultZone().instant().plusSeconds(response.getAuthLeaseDuration());
             this.vaultConfig = this.vaultConfig.token(response.getAuthClientToken());
             this.vault = new Vault(this.vaultConfig.build());
+            this.valid = true;
         } catch (VaultException ve) {
             LOGGER.error("Error connecting to Vault", ve);
             throw new ConnectionException(ve);

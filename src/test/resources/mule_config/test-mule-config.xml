@@ -20,6 +20,10 @@
         <vault:get-secret config-ref="configV2" path="secret/test/mysecret"/>
     </flow>
 
+    <flow name="missingFlow">
+        <vault:get-secret config-ref="configV2" path="secret/does/not/exist"/>
+    </flow>
+
     <flow name="writeSecretFlow">
         <vault:write-secret config-ref="configV2" path="secret/test/mule-write" secret='{"name":"test"}'/>
         <vault:get-secret config-ref="configV2" path="secret/test/mule-write" />

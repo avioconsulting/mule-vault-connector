@@ -55,6 +55,7 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
         }
       }
 
+      this.valid = true;
     } catch (VaultException ve) {
       LOGGER.error("Error establishing Vault connection", ve);
       throw new ConnectionException(ve.getMessage(), ve.getCause());

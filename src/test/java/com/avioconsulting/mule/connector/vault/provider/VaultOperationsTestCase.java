@@ -9,9 +9,9 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
 import org.junit.Test;
+import org.junit.Assert;
 
 import java.io.IOException;
-import java.util.Base64;
 
 public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
 
@@ -81,6 +81,18 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
             .getPayload()
             .getValue());
     assertThat(payloadValue,startsWith("vault"));
+  }
+
+  @Test
+  public void executeGetSecretDoesNotExist() throws Exception {
+    try {
+      String payloadValue = ((String) flowRunner("missingFlow").run()
+              .getMessage()
+              .getPayload()
+              .getValue());
+      Assert.fail("The payload is not present, so there should have been an exception.");
+    } catch (Exception ignored) { }
+
   }
 
 }

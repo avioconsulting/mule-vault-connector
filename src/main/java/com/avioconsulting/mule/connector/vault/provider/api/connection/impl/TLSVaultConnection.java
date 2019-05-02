@@ -79,6 +79,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
             Vault vaultDriver = new Vault(this.vaultConfig.build());
             String vaultToken = vaultDriver.auth().loginByCert().getAuthClientToken();
             this.vault = new Vault(this.vaultConfig.sslConfig(ssl.build()).token(vaultToken).build());
+            this.valid = true;
         } catch (VaultException ve) {
             LOGGER.error("Error creating Vault connection",ve);
             throw new ConnectionException(ve.getMessage(), ve.getCause());
