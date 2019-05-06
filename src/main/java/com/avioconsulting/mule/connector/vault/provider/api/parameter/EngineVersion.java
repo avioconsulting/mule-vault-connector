@@ -10,7 +10,7 @@ public enum EngineVersion {
 
     private final Integer engineVersion;
 
-    private EngineVersion(Integer i) {
+    EngineVersion(Integer i) {
         this.engineVersion = i;
     }
 

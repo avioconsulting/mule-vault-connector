@@ -94,7 +94,7 @@ public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<Vau
             pkcs7 = lookupPKCS7();
         }
         boolean pkcsUnavailable = pkcs7 == null || pkcs7.isEmpty();
-        boolean identityUnavailable = (identity == null || identity.isEmpty()) || (signature == null || signature.isEmpty());
+        boolean identityUnavailable = identity == null || identity.isEmpty() || signature == null || signature.isEmpty();
         if (pkcsUnavailable && identityUnavailable) {
             LOGGER.error("PKCS7 Signature, Identity Document, and Identity Signature are all null or empty");
             throw new ConnectionException("PKCS7 Signature or the Identity Document and Signature are required");
