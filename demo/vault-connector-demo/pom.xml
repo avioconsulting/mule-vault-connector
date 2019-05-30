@@ -46,7 +46,7 @@
 		<dependency>
             <groupId>f2ea2cb4-c600-4bb5-88e8-e952ff5591ee</groupId>
             <artifactId>vault-connector</artifactId>
-            <version>0.1.1</version>
+            <version>0.2.0</version>
             <classifier>mule-plugin</classifier>
         </dependency>
     </dependencies>

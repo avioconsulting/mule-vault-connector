@@ -200,7 +200,7 @@ After it is published in the exchange, the dependency in a project would change 
 <dependency>
     <groupId>${orgId}</groupId>
     <artifactId>vault-connector</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <classifier>mule-plugin</classifier>
 </dependency>
 ```
