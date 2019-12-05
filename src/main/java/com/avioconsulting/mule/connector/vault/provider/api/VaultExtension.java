@@ -1,10 +1,12 @@
 package com.avioconsulting.mule.connector.vault.provider.api;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.VaultErrors;
+import org.mule.runtime.api.meta.Category;
 import org.mule.runtime.extension.api.annotation.Extension;
 import org.mule.runtime.extension.api.annotation.Configurations;
 import org.mule.runtime.extension.api.annotation.dsl.xml.Xml;
 import org.mule.runtime.extension.api.annotation.error.ErrorTypes;
+import org.mule.runtime.extension.api.annotation.license.RequiresEnterpriseLicense;
 
 
 /**
@@ -12,7 +14,8 @@ import org.mule.runtime.extension.api.annotation.error.ErrorTypes;
  * operations and sources are going to be declared.
  */
 @Xml(prefix = "vault")
-@Extension(name = "Vault")
+@Extension(name = "Vault", category = Category.CERTIFIED, vendor = "AVIO Consulting")
+@RequiresEnterpriseLicense(allowEvaluationLicense = true)
 @ErrorTypes(VaultErrors.class)
 @Configurations(VaultConfiguration.class)
 public class VaultExtension {
