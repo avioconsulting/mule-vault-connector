@@ -7,6 +7,8 @@ import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
+import com.bettercloud.vault.response.AuthResponse;
+import com.bettercloud.vault.response.LookupResponse;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +44,10 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
       }
       SslConfig ssl = getVaultSSLConfig(sslProperties);
       this.vault = new Vault(this.vaultConfig.token(vaultToken).sslConfig(ssl.build()).build());
-      renewable = this.vault.auth().lookupSelf().isRenewable();
-      long creationTimeSec = this.vault.auth().lookupSelf().getCreationTime();
-      long ttl = this.vault.auth().lookupSelf().getTTL();
+      LookupResponse lookupResponse = this.vault.auth().lookupSelf();
+      renewable = lookupResponse.isRenewable();
+      long creationTimeSec = lookupResponse.getCreationTime();
+      long ttl = lookupResponse.getTTL();
 
       if (creationTimeSec > 0) {
         Instant creationTime = Instant.ofEpochSecond(creationTimeSec);

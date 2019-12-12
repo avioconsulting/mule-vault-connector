@@ -13,7 +13,7 @@ public class VaultEc2IDDocAuthTestCase extends MuleArtifactFunctionalTestCase {
 
     @BeforeClass
     public static void runCheckBeforeTest() {
-        assumeTrue(AwsCheck.isExecutingOnAws());
+        assumeTrue(AwsCheck.isAWSCheckEnabled() && AwsCheck.isExecutingOnAws());
     }
 
     @Override

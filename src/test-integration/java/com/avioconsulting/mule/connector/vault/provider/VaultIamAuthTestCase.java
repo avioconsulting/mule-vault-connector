@@ -9,11 +9,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assume.assumeTrue;
 
-public class VaultEc2MetaDataAuthenticationTestCase extends MuleArtifactFunctionalTestCase {
+public class VaultIamAuthTestCase extends MuleArtifactFunctionalTestCase {
 
     @BeforeClass
     public static void runCheckBeforeTest() {
-        assumeTrue(AwsCheck.isExecutingOnAws());
+        assumeTrue(AwsCheck.isAWSCheckEnabled() && AwsCheck.isExecutingOnAws());
     }
 
     @Override

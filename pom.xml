@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>f2ea2cb4-c600-4bb5-88e8-e952ff5591ee</groupId>
     <artifactId>vault-connector</artifactId>
-    <version>0.2.0</version>
+    <version>1.0.0</version>
     <packaging>mule-extension</packaging>
     <name>Vault Connector</name>
 
@@ -96,6 +96,17 @@
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.60</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-netty</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-client-java</artifactId>
+            <version>5.7.0</version>
         </dependency>
 	</dependencies>
     <repositories>
