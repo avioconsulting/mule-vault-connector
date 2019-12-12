@@ -21,7 +21,7 @@ import java.io.File;
  */
 public class TLSVaultConnection extends AbstractVaultConnection {
 
-    private Logger LOGGER = LoggerFactory.getLogger(TLSVaultConnection.class);
+    private Logger logger = LoggerFactory.getLogger(TLSVaultConnection.class);
 
     /**
      * Create a connection, authenticating via TLS
@@ -81,7 +81,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
             this.vault = new Vault(this.vaultConfig.sslConfig(ssl.build()).token(vaultToken).build());
             this.valid = true;
         } catch (VaultException ve) {
-            LOGGER.error("Error creating Vault connection",ve);
+            logger.error("Error creating Vault connection",ve);
             throw new ConnectionException(ve.getMessage(), ve.getCause());
         }
     }

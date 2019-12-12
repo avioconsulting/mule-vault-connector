@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 @Alias("basic-connection")
 public class VaultConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(VaultConnectionProvider.class);
+  private final Logger logger = LoggerFactory.getLogger(VaultConnectionProvider.class);
 
   @DisplayName("Vault URL")
   @Parameter
@@ -55,7 +55,7 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
     try {
       connection.invalidate();
     } catch (Exception e) {
-      LOGGER.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
+      logger.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
     }
   }
 

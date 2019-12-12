@@ -19,5 +19,5 @@ import org.mule.runtime.extension.api.annotation.license.RequiresEnterpriseLicen
 @ErrorTypes(VaultErrors.class)
 @Configurations(VaultConfiguration.class)
 public class VaultExtension {
-
+    private VaultExtension() {}
 }

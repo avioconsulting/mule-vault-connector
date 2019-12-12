@@ -7,7 +7,6 @@ import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.response.AuthResponse;
 import com.bettercloud.vault.response.LookupResponse;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ import java.time.Instant;
  */
 public final class BasicVaultConnection extends AbstractVaultConnection {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(BasicVaultConnection.class);
+  private final Logger logger = LoggerFactory.getLogger(BasicVaultConnection.class);
 
   /**
    * Construct a connection using a Vault Token
@@ -60,7 +59,7 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
 
       this.valid = true;
     } catch (VaultException ve) {
-      LOGGER.error("Error establishing Vault connection", ve);
+      logger.error("Error establishing Vault connection", ve);
       throw new ConnectionException(ve.getMessage(), ve.getCause());
     }
   }

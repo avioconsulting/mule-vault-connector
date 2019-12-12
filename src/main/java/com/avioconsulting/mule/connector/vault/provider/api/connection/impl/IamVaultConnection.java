@@ -24,7 +24,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
 
     private final static String UTF_8 = "UTF-8";
 
-    private final Logger LOGGER = LoggerFactory.getLogger(IamVaultConnection.class);
+    private final Logger logger = LoggerFactory.getLogger(IamVaultConnection.class);
 
     /**
      * Construct a connection using IAM to authenticate
@@ -67,10 +67,10 @@ public class IamVaultConnection extends AbstractVaultConnection {
             this.vault = new Vault(this.vaultConfig.build());
             this.valid = true;
         } catch (VaultException ve) {
-            LOGGER.error("Error connecting to Vault", ve);
+            logger.error("Error connecting to Vault", ve);
             throw new ConnectionException(ve);
         } catch (UnsupportedEncodingException e) {
-            LOGGER.error("Error connecting to Vault", e);
+            logger.error("Error connecting to Vault", e);
             throw new ConnectionException(e);
         }
     }

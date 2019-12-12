@@ -22,7 +22,7 @@ import java.time.Instant;
  */
 public abstract class AbstractVaultConnection implements VaultConnection {
 
-    private Logger LOGGER = LoggerFactory.getLogger(AbstractVaultConnection.class);
+    private Logger logger = LoggerFactory.getLogger(AbstractVaultConnection.class);
 
     String id;
     boolean valid = false;
@@ -80,7 +80,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 this.renewable = response.getRenewable();
                 this.expirationTime = Clock.systemDefaultZone().instant().plusSeconds(response.getAuthLeaseDuration());
             } catch (VaultException ve) {
-                LOGGER.error("Error renewing Vault token");
+                logger.error("Error renewing Vault token",ve);
             }
         }
     }

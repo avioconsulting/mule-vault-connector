@@ -25,7 +25,7 @@ import java.util.Random;
 @Alias("tls-connection")
 public class VaultTLSConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(VaultTLSConnectionProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(VaultTLSConnectionProvider.class);
 
     @DisplayName("Vault URL")
     @Parameter
@@ -61,7 +61,7 @@ public class VaultTLSConnectionProvider implements PoolingConnectionProvider<Vau
         try {
             connection.invalidate();
         } catch (Exception e) {
-            LOGGER.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
+            logger.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
         }
     }
 

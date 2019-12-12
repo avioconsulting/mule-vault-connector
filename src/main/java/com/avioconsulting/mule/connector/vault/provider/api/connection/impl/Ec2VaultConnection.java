@@ -20,7 +20,7 @@ import java.time.Clock;
  */
 public class Ec2VaultConnection extends AbstractVaultConnection {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(Ec2VaultConnection.class);
+    private final Logger logger = LoggerFactory.getLogger(Ec2VaultConnection.class);
 
     /**
      * Construct a connection to Vault using EC2 properties
@@ -61,7 +61,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
             this.vault = new Vault(this.vaultConfig.build());
             this.valid = true;
         } catch (VaultException ve) {
-            LOGGER.error("Error connecting to Vault", ve);
+            logger.error("Error connecting to Vault", ve);
             throw new ConnectionException(ve);
         }
     }
