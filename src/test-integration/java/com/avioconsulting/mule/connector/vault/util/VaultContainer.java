@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 
 public class VaultContainer implements TestRule {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VaultContainer.class);
+    private static final Logger logger = LoggerFactory.getLogger(VaultContainer.class);
 
     public final static String CURRENT_WORKING_DIRECTORY = System.getProperty("user.dir");
     public final static String SSL_DIRECTORY = CURRENT_WORKING_DIRECTORY + File.separator + "ssl";
@@ -80,7 +80,7 @@ public class VaultContainer implements TestRule {
     }
 
     public void initAndUnsealVault() throws IOException, InterruptedException {
-        final Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(LOGGER);
+        final Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger);
         container.followOutput(logConsumer);
 
         // Initialize the Vault server
@@ -136,15 +136,15 @@ public class VaultContainer implements TestRule {
     }
 
     private Container.ExecResult runCommand(final String... command) throws IOException, InterruptedException {
-        LOGGER.info("Command: {}", String.join(" ", command));
+        logger.info("Command: {}", String.join(" ", command));
         final Container.ExecResult result = this.container.execInContainer(command);
         final String out = result.getStdout();
         final String err = result.getStderr();
         if (out != null && !out.isEmpty()) {
-            LOGGER.info("Command stdout: {}", result.getStdout());
+            logger.info("Command stdout: {}", result.getStdout());
         }
         if (err != null && !err.isEmpty()) {
-            LOGGER.info("Command stderr: {}", result.getStderr());
+            logger.info("Command stderr: {}", result.getStderr());
         }
         return result;
     }

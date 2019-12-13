@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class VaultOperations {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(VaultOperations.class);
+  private static final Logger logger = LoggerFactory.getLogger(VaultOperations.class);
 
   /**
    * Retrieve a secret from Vault
@@ -51,13 +51,13 @@ public class VaultOperations {
       return gson.toJson(connection.getVault().logical().read(path).getData());
     } catch (VaultException ve) {
       if (ve.getHttpStatusCode() == 404) {
-        LOGGER.error("Secret not found in Vault", ve);
+        logger.error("Secret not found in Vault", ve);
         throw new SecretNotFoundException(ve);
       } else if (ve.getHttpStatusCode() == 403) {
-        LOGGER.error("Access denied in Vault", ve);
+        logger.error("Access denied in Vault", ve);
         throw new VaultAccessException(ve);
       } else {
-        LOGGER.error("Unknown Vault Exception", ve);
+        logger.error("Unknown Vault Exception", ve);
         throw new UnknownVaultException(ve);
       }
     }
@@ -81,10 +81,10 @@ public class VaultOperations {
       connection.getVault().logical().write(path, secretData);
     } catch (VaultException ve) {
       if (ve.getHttpStatusCode() == 403) {
-        LOGGER.error("Access denied in Vault", ve);
+        logger.error("Access denied in Vault", ve);
         throw new VaultAccessException(ve);
       } else {
-        LOGGER.error("Unknown Vault Exception", ve);
+        logger.error("Unknown Vault Exception", ve);
         throw new UnknownVaultException(ve);
       }
     }
@@ -110,10 +110,10 @@ public class VaultOperations {
       return response.getData().get("ciphertext");
     } catch (VaultException ve) {
       if (ve.getHttpStatusCode() == 403) {
-        LOGGER.error("Access denied in Vault", ve);
+        logger.error("Access denied in Vault", ve);
         throw new VaultAccessException(ve);
       } else {
-        LOGGER.error("Unknown Vault Exception", ve);
+        logger.error("Unknown Vault Exception", ve);
         throw new UnknownVaultException(ve);
       }
     }
@@ -139,10 +139,10 @@ public class VaultOperations {
       return decrypted;
     } catch (VaultException ve) {
       if (ve.getHttpStatusCode() == 403) {
-        LOGGER.error("Access denied in Vault", ve);
+        logger.error("Access denied in Vault", ve);
         throw new VaultAccessException(ve);
       } else {
-        LOGGER.error("Unknown Vault Exception", ve);
+        logger.error("Unknown Vault Exception", ve);
         throw new UnknownVaultException(ve);
       }
     }
@@ -167,10 +167,10 @@ public class VaultOperations {
       return response.getData().get("ciphertext");
     } catch (VaultException ve) {
       if (ve.getHttpStatusCode() == 403) {
-        LOGGER.error("Access denied in Vault", ve);
+        logger.error("Access denied in Vault", ve);
         throw new VaultAccessException(ve);
       } else {
-        LOGGER.error("Unknown Vault Exception", ve);
+        logger.error("Unknown Vault Exception", ve);
         throw new UnknownVaultException(ve);
       }
     }
