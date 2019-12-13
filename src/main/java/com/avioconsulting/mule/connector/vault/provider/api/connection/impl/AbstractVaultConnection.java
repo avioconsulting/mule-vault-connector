@@ -22,7 +22,7 @@ import java.time.Instant;
  */
 public abstract class AbstractVaultConnection implements VaultConnection {
 
-    private Logger logger = LoggerFactory.getLogger(AbstractVaultConnection.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractVaultConnection.class);
 
     String id;
     boolean valid = false;

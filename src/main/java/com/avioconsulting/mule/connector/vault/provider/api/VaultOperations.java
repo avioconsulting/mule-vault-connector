@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class VaultOperations {
 
-  private final Logger LOGGER = LoggerFactory.getLogger(VaultOperations.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(VaultOperations.class);
 
   /**
    * Retrieve a secret from Vault

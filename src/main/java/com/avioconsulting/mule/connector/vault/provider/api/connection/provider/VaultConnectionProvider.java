@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 @Alias("basic-connection")
 public class VaultConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
-  private final Logger logger = LoggerFactory.getLogger(VaultConnectionProvider.class);
+  private static final Logger logger = LoggerFactory.getLogger(VaultConnectionProvider.class);
 
   @DisplayName("Vault URL")
   @Parameter

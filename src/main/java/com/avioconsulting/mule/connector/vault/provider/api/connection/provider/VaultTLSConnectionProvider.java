@@ -25,7 +25,7 @@ import java.util.Random;
 @Alias("tls-connection")
 public class VaultTLSConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
 
-    private final Logger logger = LoggerFactory.getLogger(VaultTLSConnectionProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(VaultTLSConnectionProvider.class);
 
     @DisplayName("Vault URL")
     @Parameter

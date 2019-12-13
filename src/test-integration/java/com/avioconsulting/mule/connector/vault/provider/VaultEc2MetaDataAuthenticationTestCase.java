@@ -23,7 +23,7 @@ public class VaultEc2MetaDataAuthenticationTestCase extends MuleArtifactFunction
 
     @Test
     public void testVaultEc2Authentication() throws Exception {
-        assumeTrue(AwsCheck.isExecutingOnAws());
+        assumeTrue(AwsCheck.isAWSCheckEnabled() && AwsCheck.isExecutingOnAws());
         String payloadValue = ((String) flowRunner("getSecretFlow")
                 .run()
                 .getMessage()

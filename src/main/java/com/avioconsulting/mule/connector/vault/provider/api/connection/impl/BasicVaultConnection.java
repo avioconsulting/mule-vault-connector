@@ -21,7 +21,7 @@ import java.time.Instant;
  */
 public final class BasicVaultConnection extends AbstractVaultConnection {
 
-  private final Logger logger = LoggerFactory.getLogger(BasicVaultConnection.class);
+  private static final Logger logger = LoggerFactory.getLogger(BasicVaultConnection.class);
 
   /**
    * Construct a connection using a Vault Token

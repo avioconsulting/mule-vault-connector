@@ -21,7 +21,7 @@ import java.io.File;
  */
 public class TLSVaultConnection extends AbstractVaultConnection {
 
-    private Logger logger = LoggerFactory.getLogger(TLSVaultConnection.class);
+    private static final Logger logger = LoggerFactory.getLogger(TLSVaultConnection.class);
 
     /**
      * Create a connection, authenticating via TLS

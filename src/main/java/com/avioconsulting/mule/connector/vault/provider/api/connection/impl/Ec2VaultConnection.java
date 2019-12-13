@@ -20,7 +20,7 @@ import java.time.Clock;
  */
 public class Ec2VaultConnection extends AbstractVaultConnection {
 
-    private final Logger logger = LoggerFactory.getLogger(Ec2VaultConnection.class);
+    private static final Logger logger = LoggerFactory.getLogger(Ec2VaultConnection.class);
 
     /**
      * Construct a connection to Vault using EC2 properties
