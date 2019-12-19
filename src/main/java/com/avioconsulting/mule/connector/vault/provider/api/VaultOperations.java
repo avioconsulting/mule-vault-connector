@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -105,7 +106,7 @@ public class VaultOperations {
   public String encryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
     try {
       Map<String, Object> data = new HashMap<>();
-      data.put("plaintext", Base64.getEncoder().encodeToString(plaintext.getBytes()));
+      data.put("plaintext", Base64.getEncoder().encodeToString(plaintext.getBytes(StandardCharsets.UTF_8)));
       LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/encrypt/" + keyName, data);
       return response.getData().get("ciphertext");
     } catch (VaultException ve) {
@@ -135,7 +136,7 @@ public class VaultOperations {
       Map<String, Object> data = new HashMap<>();
       data.put("ciphertext", ciphertext);
       LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/decrypt/" + keyName, data);
-      String decrypted = new String(Base64.getDecoder().decode(response.getData().get("plaintext")));
+      String decrypted = new String(Base64.getDecoder().decode(response.getData().get("plaintext")), StandardCharsets.UTF_8);
       return decrypted;
     } catch (VaultException ve) {
       if (ve.getHttpStatusCode() == 403) {

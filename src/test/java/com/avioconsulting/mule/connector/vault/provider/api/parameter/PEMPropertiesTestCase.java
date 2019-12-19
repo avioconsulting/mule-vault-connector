@@ -15,4 +15,14 @@ public class PEMPropertiesTestCase extends TestCase {
         assertEquals("file", props.getClientPemFile());
         assertEquals("key", props.getClientKeyPemFile());
     }
+
+    @Test
+    public void testToString() {
+        PEMProperties props = new PEMProperties();
+
+        props.setClientKeyPemFile("key");
+        props.setClientPemFile("file");
+
+        assertEquals("clientPemFile: file, clientKeyPemFile: key", props.toString());
+    }
 }

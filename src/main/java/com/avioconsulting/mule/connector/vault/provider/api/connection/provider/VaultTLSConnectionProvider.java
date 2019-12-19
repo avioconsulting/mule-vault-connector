@@ -47,8 +47,7 @@ public class VaultTLSConnectionProvider implements PoolingConnectionProvider<Vau
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        int connectionNumber = new Random().nextInt();
-        return new TLSVaultConnection("tls_conn_" + connectionNumber,
+        return new TLSVaultConnection("tls_conn",
                 vaultUrl,
                 tlsAuthProperties.getJksProperties(),
                 tlsAuthProperties.getPemProperties(),
