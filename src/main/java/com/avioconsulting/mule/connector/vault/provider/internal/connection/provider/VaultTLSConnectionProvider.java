@@ -1,7 +1,7 @@
-package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
-import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.TLSVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.TLSVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.*;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -14,8 +14,6 @@ import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Random;
 
 /**
  * This class provides {@link TLSVaultConnection} instances and the functionality to disconnect and validate those

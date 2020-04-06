@@ -1,10 +1,13 @@
-package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
-import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.BasicVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
 import org.mule.runtime.api.connection.ConnectionException;
+//import org.mule.runtime.api.lifecycle.Initialisable;
+//import org.mule.runtime.api.lifecycle.InitialisationException;
+//import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
@@ -39,11 +42,19 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
   @Parameter
   private String vaultToken;
 
+//  @Parameter
+//  private TlsContextFactory tlsContext;
+
   @DisplayName("SSL Properties")
   @Parameter
   @Optional
   @Placement(tab = Placement.CONNECTION_TAB)
   private SSLProperties sslProperties;
+
+//  @Override
+//  public void initialise() throws InitialisationException {
+//    ((Initialisable) tlsContext).initialise();
+//  }
 
   @Override
   public VaultConnection connect() throws ConnectionException {

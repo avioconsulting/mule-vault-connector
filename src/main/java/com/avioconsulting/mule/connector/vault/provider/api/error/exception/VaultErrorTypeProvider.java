@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.connector.vault.provider.api.error;
+package com.avioconsulting.mule.connector.vault.provider.api.error.exception;
 
 import org.mule.runtime.extension.api.annotation.error.ErrorTypeProvider;
 import org.mule.runtime.extension.api.error.ErrorTypeDefinition;
@@ -11,9 +11,9 @@ public class VaultErrorTypeProvider implements ErrorTypeProvider {
     public Set<ErrorTypeDefinition> getErrorTypes() {
         Set<ErrorTypeDefinition> errors = new HashSet<>();
 
-        errors.add(VaultErrors.ACCESS_DENIED);
-        errors.add(VaultErrors.SECRET_NOT_FOUND);
-        errors.add(VaultErrors.UNKNOWN_ERROR);
+        errors.add(VaultErrorType.ACCESS_DENIED);
+        errors.add(VaultErrorType.SECRET_NOT_FOUND);
+        errors.add(VaultErrorType.UNKNOWN_ERROR);
 
         return errors;
     }

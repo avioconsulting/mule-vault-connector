@@ -1,3 +1,16 @@
+# Mule Vault Connector CRUD Demo
+This demo exposes 5 listeners to demonstrate the operations available in the Vault Connector. 
+The connector allows for secrets to be retrieved and written. It also allows one to encrypt, decrypt, and reencrypt data
+ using the Transit secrets engine.
+
+* /getSecret
+* /writeSecret
+* /encrypt
+* /decrypt
+* /reencrypt
+
+
+
 # Executing the Vault Connector Demo
 
 ## Step 0: Install prerequisites

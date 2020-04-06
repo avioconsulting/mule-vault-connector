@@ -1,7 +1,7 @@
-package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
-import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.connection.impl.Ec2VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.Ec2VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
 import com.bettercloud.vault.rest.Rest;

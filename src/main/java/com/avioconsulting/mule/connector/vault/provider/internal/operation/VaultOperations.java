@@ -1,13 +1,13 @@
-package com.avioconsulting.mule.connector.vault.provider.api;
+package com.avioconsulting.mule.connector.vault.provider.internal.operation;
 
 import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
 import static org.mule.runtime.extension.api.annotation.param.MediaType.ANY;
 
-import com.avioconsulting.mule.connector.vault.provider.api.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.error.SecretNotFoundException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.UnknownVaultException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.VaultErrorTypeProvider;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.response.LogicalResponse;
 import com.google.gson.Gson;

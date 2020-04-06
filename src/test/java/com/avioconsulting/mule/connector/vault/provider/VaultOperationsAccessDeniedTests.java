@@ -117,7 +117,7 @@ public class VaultOperationsAccessDeniedTests extends MuleArtifactFunctionalTest
         );
 
         return "mule_config/test-operations-mule-config.xml";
-    }
+}
 
     @Test
     public void testGetSecretAccessDenied() throws Exception {

@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,13 +11,15 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-public class Ec2IDDocConnectionTestCase extends MuleArtifactFunctionalTestCase {
+public class IAMConnectionTestCase extends MuleArtifactFunctionalTestCase {
 
     @Rule
     public MockServerRule mockServerRule = new MockServerRule(this);
     private MockServerClient mockClient;
 
+    @Override
     protected String getConfigFile() {
+        // Set vaultUrl and vaultToken properties so they can be used in the Mule config file
         System.setProperty("vaultUrl", String.format("https://%s:%d", mockServerRule.getClient().remoteAddress().getHostString(), mockServerRule.getClient().remoteAddress().getPort()));
 
         mockClient
@@ -47,11 +49,11 @@ public class Ec2IDDocConnectionTestCase extends MuleArtifactFunctionalTestCase {
 
         );
 
-        return "mule_config/test-mule-ec2-iddoc-auth-config.xml";
+        return "mule_config/test-mule-iam-config.xml";
     }
 
     @Test
-    public void testEc2IdDocConnection() throws Exception {
+    public void testIamConnection() throws Exception {
         String payloadValue = ((String) flowRunner("getSecretFlow")
                 .run()
                 .getMessage()

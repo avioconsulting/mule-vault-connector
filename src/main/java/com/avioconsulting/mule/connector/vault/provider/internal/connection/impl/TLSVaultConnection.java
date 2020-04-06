@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.connector.vault.provider.api.connection.impl;
+package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.JKSProperties;

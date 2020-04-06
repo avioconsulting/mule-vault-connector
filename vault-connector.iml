@@ -172,12 +172,13 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.woodstox:woodstox-core:5.0.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.woodstox:stax2-api:3.1.4" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml:aalto-xml:1.0.0" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: javax.mail:mail:1.4.7" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.mule.weave:debugger:2.1.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.mule.weave:yaml-module:2.1.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.mule.syaml:syaml_2.12:0.0.10" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.mule.common:scala-common_2.12:0.1.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.scalactic:scalactic_2.12:3.0.1" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.mail:jakarta.mail:1.6.3" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.activation:jakarta.activation:1.2.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mule.tests.plugin:mule-tests-component-plugin:mule-plugin:4.1.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mule.tests.plugin:mule-core-deprecated-schema-plugin:mule-plugin:4.1.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mule.tests:mule-tests-functional:4.1.1" level="project" />

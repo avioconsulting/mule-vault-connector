@@ -1,6 +1,7 @@
-package com.avioconsulting.mule.connector.vault.provider.api;
+package com.avioconsulting.mule.connector.vault.provider.internal.extension;
 
-import com.avioconsulting.mule.connector.vault.provider.api.error.VaultErrors;
+import com.avioconsulting.mule.connector.vault.provider.api.VaultConfiguration;
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorType;
 import org.mule.runtime.api.meta.Category;
 import org.mule.runtime.extension.api.annotation.Extension;
 import org.mule.runtime.extension.api.annotation.Configurations;
@@ -16,8 +17,8 @@ import org.mule.runtime.extension.api.annotation.license.RequiresEnterpriseLicen
 @Xml(prefix = "vault")
 @Extension(name = "Vault", category = Category.CERTIFIED, vendor = "AVIO Consulting")
 @RequiresEnterpriseLicense(allowEvaluationLicense = true)
-@ErrorTypes(VaultErrors.class)
+@ErrorTypes(VaultErrorType.class)
 @Configurations(VaultConfiguration.class)
-public class VaultExtension {
-    private VaultExtension() {}
+public class VaultConnector {
+    private VaultConnector() {}
 }

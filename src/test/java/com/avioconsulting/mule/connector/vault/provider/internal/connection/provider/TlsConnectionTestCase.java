@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.connector.vault.provider.api.connection.provider;
+package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,7 +11,9 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-public class IAMConnectionTestCase extends MuleArtifactFunctionalTestCase {
+public class TlsConnectionTestCase extends MuleArtifactFunctionalTestCase {
+
+    private static String LOOKUP_RESPONSE = "{\"data\":{\"accessor\":\"8609694a-cdbc-db9b-d345-e782dbb562ed\",\"creation_time\":1523979354,\"creation_ttl\":2764800,\"display_name\":\"ldap2-tesla\",\"entity_id\":\"7d2e3179-f69b-450c-7179-ac8ee8bd8ca9\",\"expire_time\":\"2018-05-19T11:35:54.466476215-04:00\",\"explicit_max_ttl\":0,\"id\":\"cf64a70f-3a12-3f6c-791d-6cef6d390eed\",\"identity_policies\":[\"dev-group-policy\"],\"issue_time\":\"2018-04-17T11:35:54.466476078-04:00\",\"meta\":{\"username\":\"tesla\"},\"num_uses\":0,\"orphan\":true,\"path\":\"auth/ldap2/login/tesla\",\"policies\":[\"default\",\"testgroup2-policy\"],\"renewable\":false,\"ttl\":2764790}}";
 
     @Rule
     public MockServerRule mockServerRule = new MockServerRule(this);
@@ -26,8 +28,21 @@ public class IAMConnectionTestCase extends MuleArtifactFunctionalTestCase {
                 .withSecure(true)
                 .when(
                         request()
+                                .withMethod("GET")
+                                .withPath("/v1/auth/token/lookup-self")
+                                .withHeader("X-Vault-Token", "MOCK_TOKEN")
+                ).respond(
+                response()
+                        .withStatusCode(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(LOOKUP_RESPONSE)
+        );
+        mockClient
+                .withSecure(true)
+                .when(
+                        request()
                                 .withMethod("POST")
-                                .withPath("/v1/auth/aws/login")
+                                .withPath("/v1/auth/cert/login")
                 ).respond(
                 response()
                         .withStatusCode(200)
@@ -49,12 +64,37 @@ public class IAMConnectionTestCase extends MuleArtifactFunctionalTestCase {
 
         );
 
-        return "mule_config/test-mule-iam-config.xml";
+        return "mule_config/test-mule-tls-auth-config.xml";
     }
 
     @Test
-    public void testIamConnection() throws Exception {
-        String payloadValue = ((String) flowRunner("getSecretFlow")
+    public void testJksConfig() throws Exception {
+
+        String payloadValue = ((String) flowRunner("getSecretFlowJksConfig")
+                .run()
+                .getMessage()
+                .getPayload()
+                .getValue());
+
+        assertThat(payloadValue, containsString("test_value1"));
+    }
+
+    @Test
+    public void testPemConfig() throws Exception {
+
+        String payloadValue = ((String) flowRunner("getSecretFlowPemConfig")
+                .run()
+                .getMessage()
+                .getPayload()
+                .getValue());
+
+        assertThat(payloadValue, containsString("test_value1"));
+    }
+
+    @Test
+    public void testTrustStoreConfig() throws Exception {
+
+        String payloadValue = ((String) flowRunner("getSecretFlowTrustStore")
                 .run()
                 .getMessage()
                 .getPayload()

@@ -6,14 +6,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>f2ea2cb4-c600-4bb5-88e8-e952ff5591ee</groupId>
     <artifactId>vault-connector</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>mule-extension</packaging>
-    <name>Vault Connector</name>
+    <name>Vault Connector - Mule 4</name>
 
     <parent>
-        <groupId>org.mule.extensions</groupId>
-        <artifactId>mule-modules-parent</artifactId>
-        <version>1.1.3</version>
+        <groupId>org.mule.connectors</groupId>
+        <artifactId>mule-certified-parent</artifactId>
+        <version>1.4.1</version>
     </parent>
     <build>
         <plugins>
@@ -140,12 +140,4 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-    <distributionManagement>
-        <repository>
-            <id>exchange-repository</id>
-            <name>Corporate Repository</name>
-            <url>https://maven.anypoint.mulesoft.com/api/v1/organizations/f2ea2cb4-c600-4bb5-88e8-e952ff5591ee/maven</url>
-            <layout>default</layout>
-        </repository>
-    </distributionManagement>
 </project>
