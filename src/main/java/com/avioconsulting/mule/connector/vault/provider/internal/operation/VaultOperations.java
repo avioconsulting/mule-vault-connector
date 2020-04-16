@@ -8,22 +8,12 @@ import com.avioconsulting.mule.connector.vault.provider.api.error.exception.Secr
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
-import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.response.LogicalResponse;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 
 /**
@@ -46,22 +36,7 @@ public class VaultOperations {
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = APPLICATION_JSON, strict = false)
   public String getSecret(@Connection VaultConnection connection, String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
-
-    try {
-      Gson gson = new GsonBuilder().create();
-      return gson.toJson(connection.getVault().logical().read(path).getData());
-    } catch (VaultException ve) {
-      if (ve.getHttpStatusCode() == 404) {
-        logger.error("Secret not found in Vault", ve);
-        throw new SecretNotFoundException(ve);
-      } else if (ve.getHttpStatusCode() == 403) {
-        logger.error("Access denied in Vault", ve);
-        throw new VaultAccessException(ve);
-      } else {
-        logger.error("Unknown Vault Exception", ve);
-        throw new UnknownVaultException(ve);
-      }
-    }
+    return connection.getSecret(path);
   }
 
   /**
@@ -75,20 +50,7 @@ public class VaultOperations {
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = APPLICATION_JSON, strict = false)
   public void writeSecret(@Connection VaultConnection connection, String path, String secret) throws VaultAccessException, UnknownVaultException {
-    try {
-      Gson gson = new Gson();
-      Type secretType = new TypeToken<Map<String,Object>>(){}.getType();
-      Map<String,Object> secretData = gson.fromJson(secret, secretType);
-      connection.getVault().logical().write(path, secretData);
-    } catch (VaultException ve) {
-      if (ve.getHttpStatusCode() == 403) {
-        logger.error("Access denied in Vault", ve);
-        throw new VaultAccessException(ve);
-      } else {
-        logger.error("Unknown Vault Exception", ve);
-        throw new UnknownVaultException(ve);
-      }
-    }
+    connection.writeSecret(path, secret);
   }
 
   /**
@@ -104,20 +66,7 @@ public class VaultOperations {
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = ANY, strict = false)
   public String encryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
-    try {
-      Map<String, Object> data = new HashMap<>();
-      data.put("plaintext", Base64.getEncoder().encodeToString(plaintext.getBytes(StandardCharsets.UTF_8)));
-      LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/encrypt/" + keyName, data);
-      return response.getData().get("ciphertext");
-    } catch (VaultException ve) {
-      if (ve.getHttpStatusCode() == 403) {
-        logger.error("Access denied in Vault", ve);
-        throw new VaultAccessException(ve);
-      } else {
-        logger.error("Unknown Vault Exception", ve);
-        throw new UnknownVaultException(ve);
-      }
-    }
+    return connection.encryptData(transitMountpoint, keyName, plaintext);
   }
 
   /**
@@ -132,21 +81,7 @@ public class VaultOperations {
    */
   @MediaType(value = ANY, strict = false)
   public String decryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
-    try {
-      Map<String, Object> data = new HashMap<>();
-      data.put("ciphertext", ciphertext);
-      LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/decrypt/" + keyName, data);
-      String decrypted = new String(Base64.getDecoder().decode(response.getData().get("plaintext")), StandardCharsets.UTF_8);
-      return decrypted;
-    } catch (VaultException ve) {
-      if (ve.getHttpStatusCode() == 403) {
-        logger.error("Access denied in Vault", ve);
-        throw new VaultAccessException(ve);
-      } else {
-        logger.error("Unknown Vault Exception", ve);
-        throw new UnknownVaultException(ve);
-      }
-    }
+    return connection.decryptData(transitMountpoint, keyName, ciphertext);
   }
 
   /**
@@ -161,20 +96,7 @@ public class VaultOperations {
    */
   @MediaType(value = ANY, strict = false)
   public String reencryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
-    try {
-      Map<String, Object> data = new HashMap<>();
-      data.put("ciphertext", ciphertext);
-      LogicalResponse response = connection.getVault().logical().write(transitMountpoint + "/rewrap/" + keyName, data);
-      return response.getData().get("ciphertext");
-    } catch (VaultException ve) {
-      if (ve.getHttpStatusCode() == 403) {
-        logger.error("Access denied in Vault", ve);
-        throw new VaultAccessException(ve);
-      } else {
-        logger.error("Unknown Vault Exception", ve);
-        throw new UnknownVaultException(ve);
-      }
-    }
+    return connection.reencryptData(transitMountpoint, keyName, ciphertext);
   }
 
 }
