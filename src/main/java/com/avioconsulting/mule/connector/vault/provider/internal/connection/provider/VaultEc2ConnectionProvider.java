@@ -7,6 +7,7 @@ import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLPropert
 import com.bettercloud.vault.rest.Rest;
 import com.bettercloud.vault.rest.RestException;
 import com.bettercloud.vault.rest.RestResponse;
+import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -27,7 +28,7 @@ import java.nio.charset.StandardCharsets;
  */
 @DisplayName("EC2 Connection")
 @Alias("ec2-connection")
-public class VaultEc2ConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
+public class VaultEc2ConnectionProvider implements CachedConnectionProvider<VaultConnection> {
 
     // This is the URI to use to retrieve the PKCS7 Signature
     // See: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html

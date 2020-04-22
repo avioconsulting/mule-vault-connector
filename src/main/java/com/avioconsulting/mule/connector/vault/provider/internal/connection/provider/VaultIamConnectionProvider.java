@@ -4,6 +4,7 @@ import com.avioconsulting.mule.connector.vault.provider.internal.connection.Vaul
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.IamVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
+import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -20,7 +21,7 @@ import org.mule.runtime.extension.api.annotation.param.display.Summary;
  */
 @DisplayName("IAM Connection")
 @Alias("iam-connection")
-public class VaultIamConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
+public class VaultIamConnectionProvider implements CachedConnectionProvider<VaultConnection> {
 
     @DisplayName("Vault URL")
     @Parameter

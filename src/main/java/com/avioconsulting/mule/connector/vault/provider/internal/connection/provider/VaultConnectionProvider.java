@@ -3,21 +3,28 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
+import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
-//import org.mule.runtime.api.lifecycle.Initialisable;
-//import org.mule.runtime.api.lifecycle.InitialisationException;
-//import org.mule.runtime.api.tls.TlsContextFactory;
+import org.mule.runtime.api.exception.MuleException;
+import org.mule.runtime.api.lifecycle.Initialisable;
+import org.mule.runtime.api.lifecycle.Startable;
+import org.mule.runtime.api.lifecycle.Stoppable;
+import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
+import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 
-import org.mule.runtime.extension.api.annotation.param.display.Placement;
+import org.mule.runtime.http.api.HttpService;
+import org.mule.runtime.http.api.client.HttpClient;
+import org.mule.runtime.http.api.client.HttpClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 
 /**
  * This class provides {@link BasicVaultConnection} instances and the functionality to disconnect and validate those
@@ -25,9 +32,16 @@ import org.slf4j.LoggerFactory;
  */
 @DisplayName("Basic Connection")
 @Alias("basic-connection")
-public class VaultConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
+public class VaultConnectionProvider implements CachedConnectionProvider<VaultConnection>, Startable, Stoppable {
 
   private static final Logger logger = LoggerFactory.getLogger(VaultConnectionProvider.class);
+
+  @Inject
+  private HttpService httpService;
+  private HttpClient httpClient;
+
+  @RefName
+  private String configName;
 
   @DisplayName("Vault URL")
   @Parameter
@@ -42,23 +56,16 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
   @Parameter
   private String vaultToken;
 
-//  @Parameter
-//  private TlsContextFactory tlsContext;
-
-  @DisplayName("SSL Properties")
   @Parameter
   @Optional
-  @Placement(tab = Placement.CONNECTION_TAB)
-  private SSLProperties sslProperties;
-
-//  @Override
-//  public void initialise() throws InitialisationException {
-//    ((Initialisable) tlsContext).initialise();
-//  }
+  private TlsContextFactory tlsContextFactory;
 
   @Override
   public VaultConnection connect() throws ConnectionException {
-    return new BasicVaultConnection(vaultToken + ":" + vaultUrl, vaultToken, vaultUrl, sslProperties, engineVersion);
+    if (engineVersion == null) {
+      engineVersion = EngineVersion.v2;
+    }
+    return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, engineVersion);
   }
 
   @Override
@@ -78,5 +85,23 @@ public class VaultConnectionProvider implements PoolingConnectionProvider<VaultC
           return ConnectionValidationResult.failure("Connection Invalid", null);
       }
 
+  }
+
+  @Override
+  public void start() throws MuleException {
+    if (tlsContextFactory instanceof Initialisable) {
+      ((Initialisable) tlsContextFactory).initialise();
+    }
+    HttpClientConfiguration.Builder builder = new HttpClientConfiguration.Builder();
+    if (tlsContextFactory != null) {
+      builder.setTlsContextFactory(tlsContextFactory);
+    }
+    httpClient = httpService.getClientFactory().create(builder.setName(configName).build());
+    httpClient.start();
+  }
+
+  @Override
+  public void stop() throws MuleException {
+    httpClient.stop();
   }
 }

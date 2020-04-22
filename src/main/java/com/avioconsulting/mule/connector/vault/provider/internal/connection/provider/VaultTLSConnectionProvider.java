@@ -3,6 +3,7 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.TLSVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.*;
+import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 @DisplayName("TLS Connection")
 @Alias("tls-connection")
-public class VaultTLSConnectionProvider implements PoolingConnectionProvider<VaultConnection> {
+public class VaultTLSConnectionProvider implements CachedConnectionProvider<VaultConnection> {
 
     private static final Logger logger = LoggerFactory.getLogger(VaultTLSConnectionProvider.class);
 

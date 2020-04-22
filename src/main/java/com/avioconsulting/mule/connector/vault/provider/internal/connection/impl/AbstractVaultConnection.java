@@ -3,8 +3,10 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.imp
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
+import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
@@ -13,10 +15,13 @@ import com.bettercloud.vault.response.AuthResponse;
 import com.bettercloud.vault.response.LogicalResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import org.mule.runtime.http.api.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -26,6 +31,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Abstract class implementing common methods on a VaultConnection
@@ -42,6 +48,11 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     VaultConfig vaultConfig;
     boolean renewable;
     Instant expirationTime;
+
+    protected HttpClient client;
+    protected EngineVersion engineVersion;
+    protected String token;
+    protected String vaultUrl;
 
     public AbstractVaultConnection() {
         id = null;
@@ -146,37 +157,81 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public String getSecret(String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
-        try {
-            Gson gson = new GsonBuilder().create();
-            return gson.toJson(getVault().logical().read(path).getData());
-        } catch (VaultException ve) {
-            if (ve.getHttpStatusCode() == 404) {
-                logger.error("Secret not found in Vault", ve);
-                throw new SecretNotFoundException(ve);
-            } else if (ve.getHttpStatusCode() == 403) {
-                logger.error("Access denied in Vault", ve);
-                throw new VaultAccessException(ve);
-            } else {
-                logger.error("Unknown Vault Exception", ve);
-                throw new UnknownVaultException(ve);
+        if (client != null) {
+            VaultClient vc = new VaultClient(client, vaultUrl, 500, token, engineVersion.getEngineVersionNumber());
+            try {
+                JsonObject json = vc.logical().read(path);
+                return json.toString();
+            } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException e) {
+                if (e.getStatusCode() == 404) {
+                    logger.error("Secret not found in Vault", e);
+                    throw new SecretNotFoundException(e);
+                } else if (e.getStatusCode() == 403) {
+                    logger.error("Access denied in Vault", e);
+                    throw new VaultAccessException(e);
+                } else {
+                    throw new UnknownVaultException(e);
+                }
+            } catch (InterruptedException e) {
+                throw new UnknownVaultException(e);
+            } catch (ExecutionException e) {
+                throw new UnknownVaultException(e);
+            }
+        } else {
+            try {
+                Gson gson = new GsonBuilder().create();
+                return gson.toJson(getVault().logical().read(path).getData());
+            } catch (VaultException ve) {
+                if (ve.getHttpStatusCode() == 404) {
+                    logger.error("Secret not found in Vault", ve);
+                    throw new SecretNotFoundException(ve);
+                } else if (ve.getHttpStatusCode() == 403) {
+                    logger.error("Access denied in Vault", ve);
+                    throw new VaultAccessException(ve);
+                } else {
+                    logger.error("Unknown Vault Exception", ve);
+                    throw new UnknownVaultException(ve);
+                }
             }
         }
     }
 
     @Override
     public void writeSecret(String path, String secret) throws VaultAccessException, UnknownVaultException {
-        try {
-            Gson gson = new Gson();
-            Type secretType = new TypeToken<Map<String,Object>>(){}.getType();
-            Map<String,Object> secretData = gson.fromJson(secret, secretType);
-            getVault().logical().write(path, secretData);
-        } catch (VaultException ve) {
-            if (ve.getHttpStatusCode() == 403) {
-                logger.error("Access denied in Vault", ve);
-                throw new VaultAccessException(ve);
-            } else {
-                logger.error("Unknown Vault Exception", ve);
-                throw new UnknownVaultException(ve);
+        if (client != null) {
+            VaultClient vc = new VaultClient(client, vaultUrl, 500, token, engineVersion.getEngineVersionNumber());
+            try {
+                JsonObject json = vc.logical().write(path, new ByteArrayInputStream(secret.getBytes()));
+            } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException e) {
+                if (e.getStatusCode() == 404) {
+                    logger.error("Secret not found in Vault", e);
+                    throw new SecretNotFoundException(e);
+                } else if (e.getStatusCode() == 403) {
+                    logger.error("Access denied in Vault", e);
+                    throw new VaultAccessException(e);
+                } else {
+                    throw new UnknownVaultException(e);
+                }
+            } catch (InterruptedException e) {
+                throw new UnknownVaultException(e);
+            } catch (ExecutionException e) {
+                throw new UnknownVaultException(e);
+            }
+        } else {
+            try {
+                Gson gson = new Gson();
+                Type secretType = new TypeToken<Map<String, Object>>() {
+                }.getType();
+                Map<String, Object> secretData = gson.fromJson(secret, secretType);
+                getVault().logical().write(path, secretData);
+            } catch (VaultException ve) {
+                if (ve.getHttpStatusCode() == 403) {
+                    logger.error("Access denied in Vault", ve);
+                    throw new VaultAccessException(ve);
+                } else {
+                    logger.error("Unknown Vault Exception", ve);
+                    throw new UnknownVaultException(ve);
+                }
             }
         }
     }
