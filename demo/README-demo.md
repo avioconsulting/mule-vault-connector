@@ -31,7 +31,7 @@ Open the demo application (vault-connector-demo) with Anypoint Studio and start 
 
 Execute the following to test the Get Secret component
 
-curl -d '{"path":"secret/samples/sample1"}' -X POST http://localhost:8081/getSecret
+`curl -d '{"path":"secret/samples/sample1"}' -X POST http://localhost:8081/getSecret`
 
 ### Executing write-secret-flow
 
