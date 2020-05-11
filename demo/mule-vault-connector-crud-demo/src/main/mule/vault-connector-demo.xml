@@ -1,18 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:vault="http://www.mulesoft.org/schema/mule/vault" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	  xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+	  xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	  xmlns="http://www.mulesoft.org/schema/mule/core"
+	  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/http
+		http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+		http://www.mulesoft.org/schema/mule/vault
+		http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd
+		http://www.mulesoft.org/schema/mule/tls
+		http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+
 	<http:listener-config name="HTTP_Listener" doc:name="HTTP Listener config" doc:id="507b6dd5-7e67-4c3d-b377-f3c9f0775abe">
-		<http:listener-connection host="0.0.0.0" port="8081" />
+		<http:listener-connection host="0.0.0.0" port="8081">
+		</http:listener-connection>
+	</http:listener-config>
+	<http:listener-config name="HTTPS_Listener" doc:name="HTTP Listener config" doc:id="178e74ed-7b69-4384-9de9-c6c977c08c10">
+		<http:listener-connection host="0.0.0.0" port="8082" protocol="HTTPS">
+			<tls:context >
+				<tls:key-store type="jks" path="keystore.jks" alias="mulesoft" keyPassword="mule123" password="mule123" />
+			</tls:context>
+		</http:listener-connection>
 	</http:listener-config>
 	<vault:config name="Vault_Config_KV" doc:name="Vault Config" doc:id="b9354687-5b06-4b2a-bca8-f54774200cb3" >
 		<vault:basic-connection vaultUrl="http://localhost:8200" engineVersion="v2" vaultToken="devroot" />
 	</vault:config>
 	<vault:config name="Vault_Config_Transit" doc:name="Vault Config" doc:id="1afb8d42-e96c-4ee9-9eeb-739ddaa37b20" >
-		<vault:basic-connection vaultUrl="http://localhost:8200" engineVersion="v1" vaultToken="devroot" />
+		<vault:basic-connection vaultUrl="https://localhost:8200" engineVersion="v1" vaultToken="devroot" >
+			<tls:context >
+				<tls:trust-store path="trust" password="abc" type="jks" />
+				<tls:key-store type="jks" path="abc" keyPassword="a" password="a" />
+			</tls:context>
+		</vault:basic-connection>
 	</vault:config>
 	<flow name="get-secret-flow" doc:id="99007bbb-813a-4b2b-b2a9-6c919d728727" >
 		<http:listener doc:name="Listener" doc:id="1b00dd7b-5798-42ba-9b0d-e3da2db64e55" config-ref="HTTP_Listener" allowedMethods="POST" path="getSecret" outputMimeType="application/json"/>
@@ -20,6 +42,7 @@ http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/va
 	</flow>
 	<flow name="write-secret-flow" doc:id="14508bb7-a74f-4e32-824d-647a2b7d54bf" >
 		<http:listener doc:name="Listener" doc:id="14e46207-f878-4b87-8f02-26775df214c4" config-ref="HTTP_Listener" path="writeSecret" allowedMethods="POST" outputMimeType="application/json"/>
+<!-- 		<logger level="INFO" doc:name="Logger" doc:id="ec02a859-f4d0-4ac3-b8e3-07b8023d401c" message='#["Path: " ++ payload.path ++ " And secret: " ++ write(payload.secret) as String]'/> -->
 		<vault:write-secret doc:name="Write secret" doc:id="f249c44c-c77c-4e44-9db1-9c59909d1a05" config-ref="Vault_Config_KV" path="#[payload.path]" secret="#[payload.secret]"/>
 	</flow>
 	<flow name="encrypt-data-flow" doc:id="26b52210-cdab-46d7-90c0-7c4e1f566b8a" >

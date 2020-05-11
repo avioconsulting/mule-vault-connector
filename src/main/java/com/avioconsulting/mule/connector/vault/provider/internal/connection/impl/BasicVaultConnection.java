@@ -3,6 +3,7 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.imp
 
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 
+import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.domain.message.request.HttpRequest;
@@ -72,6 +73,8 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
     this.token = vaultToken;
     this.vaultUrl = vaultUrl;
     this.engineVersion = engineVersion;
+
+    this.vConfig = new VaultConfig(httpClient, vaultUrl, 30, vaultToken, engineVersion.getEngineVersionNumber());
   }
 
   @Override

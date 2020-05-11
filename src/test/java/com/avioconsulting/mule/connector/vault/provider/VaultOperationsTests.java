@@ -5,6 +5,8 @@ import org.junit.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
@@ -14,6 +16,7 @@ import static org.mockserver.model.HttpResponse.response;
 
 public class VaultOperationsTests extends MuleArtifactFunctionalTestCase {
 
+    private static final Logger logger = LoggerFactory.getLogger(VaultOperationsTests.class);
     private static String LOOKUP_RESPONSE = "{\"data\":{\"accessor\":\"8609694a-cdbc-db9b-d345-e782dbb562ed\",\"creation_time\":1523979354,\"creation_ttl\":2764800,\"display_name\":\"ldap2-tesla\",\"entity_id\":\"7d2e3179-f69b-450c-7179-ac8ee8bd8ca9\",\"expire_time\":\"2018-05-19T11:35:54.466476215-04:00\",\"explicit_max_ttl\":0,\"id\":\"cf64a70f-3a12-3f6c-791d-6cef6d390eed\",\"identity_policies\":[\"dev-group-policy\"],\"issue_time\":\"2018-04-17T11:35:54.466476078-04:00\",\"meta\":{\"username\":\"tesla\"},\"num_uses\":0,\"orphan\":true,\"path\":\"auth/ldap2/login/tesla\",\"policies\":[\"default\",\"testgroup2-policy\"],\"renewable\":false,\"ttl\":2764790}}";
     private static String MYSECRET_RESPONSE = "{\"request_id\": \"69411f4b-fb02-171a-f66c-485f106e7f5c\",\"lease_id\": \"\",\"renewable\": false,\"lease_duration\": 0,\"data\": {\"data\": {\"att1\": \"test_value1\",\"att2\": \"test_value2\"},\"metadata\": {\"created_time\": \"2019-04-24T23:03:18.63231658Z\",\"deletion_time\": \"\",\"destroyed\": false,\"version\": 1}},\"wrap_info\": null,\"warnings\": null,\"auth\": null}";
     private static String DYNAMIC_RESPONSE = "{\"data\": {\"username\": \"dynUser\", \"password\": \"dynpassword\"}}";
@@ -29,14 +32,17 @@ public class VaultOperationsTests extends MuleArtifactFunctionalTestCase {
 
     protected String getConfigFile() {
 
-        System.setProperty("vaultUrl", String.format("https://%s:%d", mockServerRule.getClient().remoteAddress().getHostString(), mockServerRule.getClient().remoteAddress().getPort()));
+        String vaultUrl = String.format("https://%s:%d", mockServerRule.getClient().remoteAddress().getHostString(), mockServerRule.getClient().remoteAddress().getPort());
+        logger.info("getConfigFile:: Vault Url: " + vaultUrl);
+        System.setProperty("vaultUrl", vaultUrl);
 
         mockClient
                 .withSecure(true)
                 .when(
                     request()
                         .withMethod("GET")
-                        .withPath("/v1/auth/token/lookup-self")
+//                        .withPath("/v1/auth/token/lookup-self")
+                        .withPath("/v1/auth/token/lookup")
                         .withHeader("X-Vault-Token", "MOCK_TOKEN")
                 ).respond(
                     response()

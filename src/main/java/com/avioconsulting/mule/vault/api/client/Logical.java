@@ -34,6 +34,7 @@ public class Logical {
         String[] splitPath = massagedPath.split("/");
         StringBuilder sb = new StringBuilder();
         sb.append(splitPath[0]);
+        System.out.println("com.avioconsulting.mule.vault.api.client.Logical::messagePath:: Found kvVersion: " + config.getKvVersion());
         if (config.getKvVersion() == 2) {
             sb.append("/data");
         }
@@ -41,20 +42,24 @@ public class Logical {
             sb.append("/");
             sb.append(splitPath[i]);
         }
+        System.out.println("com.avioconsulting.mule.vault.api.client.Logical::messagePath:: Message Path: " + sb.toString());
         return sb.toString();
     }
 
+    /* Moving away from using logical responses, as they are used by a VaultConnection (vault base class)
+        Moved these to abstract vault connection.
+     */
     public JsonObject read(String path) throws VaultException, InterruptedException, ExecutionException {
         JsonObject secretData = new JsonObject();
         HttpRequestBuilder builder = HttpRequest.builder().
                 uri(config.getApiBaseUrl() + massagePath(path)).
                 addHeader(VAULT_TOKEN_HEADER, config.getToken()).
                 method((HttpConstants.Method.GET));
-
+        System.out.println("com.avioconsulting.mule.vault.api.client.Logical::read:: Uri: " + builder.getUri() + " and header: " + config.getToken());
         CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeout(), true, null);
 
         HttpResponse response = completable.get();
-
+        System.out.println("com.avioconsulting.mule.vault.api.client.Logical::read:: Response Code - " + response.getStatusCode());
         if (response.getStatusCode() == 200 && response.getEntity() != null) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
             JsonObject jsonObject = elem.getAsJsonObject();
@@ -65,7 +70,10 @@ public class Logical {
         }
         return secretData;
     }
-
+    
+    /* Moving away from using logical responses, as they are used by a VaultConnection (vault base class)
+        Moved these to abstract vault connection.
+     */
     public JsonObject write(String path, InputStream secretData) throws VaultException, InterruptedException, ExecutionException {
         JsonObject secretMetadata = new JsonObject();
         HttpRequestBuilder builder = HttpRequest.builder().
@@ -85,7 +93,8 @@ public class Logical {
             return jsonObject.getAsJsonObject("data");
         } else if (response.getStatusCode() >= 400) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-            throw new VaultException(response.getStatusCode(), elem.getAsString());
+//            throw new VaultException(response.getStatusCode(), elem.getAsString());
+            throw new VaultException(response.getStatusCode(), elem.toString());
         }
         return secretMetadata;
     }
