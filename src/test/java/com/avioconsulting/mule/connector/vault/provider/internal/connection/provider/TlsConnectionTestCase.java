@@ -29,7 +29,7 @@ public class TlsConnectionTestCase extends MuleArtifactFunctionalTestCase {
                 .when(
                         request()
                                 .withMethod("GET")
-                                .withPath("/v1/auth/token/lookup-self")
+                                .withPath("/v1/auth/token/lookup")
                                 .withHeader("X-Vault-Token", "MOCK_TOKEN")
                 ).respond(
                 response()
@@ -71,18 +71,6 @@ public class TlsConnectionTestCase extends MuleArtifactFunctionalTestCase {
     public void testJksConfig() throws Exception {
 
         String payloadValue = ((String) flowRunner("getSecretFlowJksConfig")
-                .run()
-                .getMessage()
-                .getPayload()
-                .getValue());
-
-        assertThat(payloadValue, containsString("test_value1"));
-    }
-
-    @Test
-    public void testPemConfig() throws Exception {
-
-        String payloadValue = ((String) flowRunner("getSecretFlowPemConfig")
                 .run()
                 .getMessage()
                 .getPayload()
