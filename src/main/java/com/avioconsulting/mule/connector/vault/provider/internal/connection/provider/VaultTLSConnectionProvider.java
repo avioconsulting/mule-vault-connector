@@ -1,5 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.TLSVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.*;
@@ -7,6 +8,7 @@ import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
+import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.Initialisable;
 import org.mule.runtime.api.lifecycle.Startable;
@@ -72,7 +74,11 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion);
+        try {
+            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion);
+        } catch (DefaultMuleException | VaultAccessException e) {
+            throw new ConnectionException(e);
+        }
     }
 
     @Override

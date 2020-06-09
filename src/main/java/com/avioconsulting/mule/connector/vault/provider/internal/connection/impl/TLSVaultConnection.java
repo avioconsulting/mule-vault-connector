@@ -1,12 +1,12 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
@@ -32,7 +32,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
     private final String authMount;
     private String certificateRole;
 
-    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion) {
+    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion) throws VaultAccessException, DefaultMuleException{
         super();
         this.client = httpClient;
         this.authMount = authMount;
@@ -51,12 +51,16 @@ public class TLSVaultConnection extends AbstractVaultConnection {
     @Override
     public boolean isValid() {
         if (this.token == null || this.token.isEmpty()) {
-            this.token = authenticate();
+            try {
+                this.token = authenticate();
+            } catch (DefaultMuleException e) {
+                logger.error("Error Authenticating", e);
+            }
         }
         return this.token != null && !this.token.isEmpty();
     }
 
-    private String authenticate() throws VaultAccessException, UnknownVaultException {
+    private String authenticate() throws VaultAccessException, DefaultMuleException {
         String token = null;
         String mount = "cert";
 
@@ -90,13 +94,12 @@ public class TLSVaultConnection extends AbstractVaultConnection {
             } else if (response.getStatusCode() == 403 || response.getStatusCode() == 404){
                 throw new VaultAccessException(new Exception("Access Error received from Vault: " + response.getStatusCode()));
             } else {
-                throw new UnknownVaultException(new Exception("Unknown error received from Vault: " + response.getStatusCode()));
+                throw new DefaultMuleException(new Exception("Unknown error received from Vault: " + response.getStatusCode()));
             }
 
-        } catch (InterruptedException e) {
-            logger.error("Timeout", e);
-        } catch (ExecutionException e) {
-            logger.error("Execution Exception", e);
+        } catch (InterruptedException | ExecutionException e ) {
+            logger.error("Exception encountered while authenticating", e);
+            throw new DefaultMuleException(e);
         }
 
         return token;
