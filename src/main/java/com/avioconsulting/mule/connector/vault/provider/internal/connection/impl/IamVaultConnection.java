@@ -1,19 +1,23 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
-import com.bettercloud.vault.SslConfig;
-import com.bettercloud.vault.Vault;
-import com.bettercloud.vault.VaultConfig;
-import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.response.AuthResponse;
-import org.mule.runtime.api.connection.ConnectionException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.mule.runtime.api.exception.DefaultMuleException;
+import org.mule.runtime.http.api.HttpConstants;
+import org.mule.runtime.http.api.client.HttpClient;
+import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
+import org.mule.runtime.http.api.domain.message.request.HttpRequest;
+import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
+import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
-import java.time.Clock;
-import java.util.Base64;
+import java.io.InputStreamReader;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * A connection to Vault using IAM to authenticate
@@ -22,56 +26,94 @@ import java.util.Base64;
  */
 public class IamVaultConnection extends AbstractVaultConnection {
 
-    private static final String UTF_8 = "UTF-8";
-
     private static final Logger logger = LoggerFactory.getLogger(IamVaultConnection.class);
 
-    /**
-     * Construct a connection using IAM to authenticate
-     *
-     * @param id                   ID for the connection
-     * @param vaultUrl             URL for the Vault server (https://host:port)
-     * @param awsAuthMount         AWS auth mount
-     * @param role                 Name of the role against which the login is being attempted. If role is not specified,
-     *                             then the login endpoint looks for a role bearing the name of the AMI ID of the EC2
-     *                             instance that is trying to login if using the ec2 auth method, or the "friendly name"
-     *                             (i.e., role name or username) of the IAM principal authenticated. If a matching role
-     *                             is not found, login fails
-     * @param iamRequestUrl        HTTP URL used in the signed request. Most likely https://sts.amazonaws.com/ as most
-     *                             requests will probably use POST with an empty URI
-     * @param iamRequestBody       Body of the signed request. Most likely Action=GetCallerIdentity&Version=2011-06-15
-     * @param iamRequestHeaders    Request headers
-     * @param sslProperties        {@link SSLProperties} to use to make the connection
-     * @param engineVersion        The version of the secret engine to use, defaulting to Version 2
-     * @throws ConnectionException if there is an issue connecting to Vault
-     */
-    public IamVaultConnection(String id, String vaultUrl, String awsAuthMount, String role, String iamRequestUrl,
-                              String iamRequestBody, String iamRequestHeaders, SSLProperties sslProperties,
-                              EngineVersion engineVersion) throws ConnectionException {
-        this.id = id;
-        try {
-            // iamRequestUrl and iamRequestBody need to be base64 encoded
-            String requestUrl_b64 = Base64.getEncoder().encodeToString(iamRequestUrl.getBytes(UTF_8));
-            String requestBody_b64 = Base64.getEncoder().encodeToString(iamRequestBody.getBytes(UTF_8));
-            this.vaultConfig = new VaultConfig().address(vaultUrl);
-            if (engineVersion != null) {
-                this.vaultConfig = this.vaultConfig.engineVersion(engineVersion.getEngineVersionNumber());
-            }
-            SslConfig ssl = getVaultSSLConfig(sslProperties);
-            this.vaultConfig = this.vaultConfig.sslConfig(ssl.build());
-            Vault vaultDriver = new Vault(this.vaultConfig.build());
-            AuthResponse response = vaultDriver.auth().loginByAwsIam(role, requestUrl_b64, requestBody_b64, iamRequestHeaders, awsAuthMount);
-            this.renewable = response.getRenewable();
-            this.expirationTime = Clock.systemDefaultZone().instant().plusSeconds(response.getAuthLeaseDuration());
-            this.vaultConfig = this.vaultConfig.token(response.getAuthClientToken());
-            this.vault = new Vault(this.vaultConfig.build());
-            this.valid = true;
-        } catch (VaultException ve) {
-            logger.error("Error connecting to Vault", ve);
-            throw new ConnectionException(ve);
-        } catch (UnsupportedEncodingException e) {
-            logger.error("Error connecting to Vault", e);
-            throw new ConnectionException(e);
+    private String authMount;
+    private String role;
+    private String iamRequestUrl;
+    private String iamRequestBody;
+    private String iamRequestHeaders;
+
+    public IamVaultConnection(String vaultUrl, String authMount, String role, HttpClient httpClient, EngineVersion engineVersion, String iamRequestUrl,
+                              String iamRequestBody, String iamRequestHeaders) throws VaultAccessException, DefaultMuleException {
+        super();
+        this.client = httpClient;
+        this.authMount = authMount;
+        this.role = role;
+        this.iamRequestUrl = iamRequestUrl;
+        this.iamRequestBody = iamRequestBody;
+        this.iamRequestHeaders = iamRequestHeaders;
+        this.vaultUrl = vaultUrl;
+        if (engineVersion != null) {
+            this.engineVersion = engineVersion;
+        } else {
+            this.engineVersion = EngineVersion.v2;
         }
+
+        this.token = authenticate();
+        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(this.client, this.vaultUrl, 30, this.token, this.engineVersion.getEngineVersionNumber());
+    }
+
+    public String authenticate() throws VaultAccessException, DefaultMuleException {
+        String token = null;
+        String mount = "aws";
+
+        if (this.authMount != null && !this.authMount.isEmpty()) {
+            mount = this.authMount;
+        }
+
+        HttpRequestBuilder builder = HttpRequest.builder().
+                uri(this.vaultUrl + "/v1/auth/" + mount + "/login").
+                method(HttpConstants.Method.POST);
+
+        JsonObject payload = new JsonObject();
+        if (this.role != null) {
+            payload.addProperty("role", this.role);
+        }
+
+        payload.addProperty("iam_http_request_method", "POST");
+        payload.addProperty("iam_request_url", this.iamRequestUrl);
+        payload.addProperty("iam_request_headers", this.iamRequestHeaders);
+        payload.addProperty("iam_request_body", this.iamRequestBody);
+        builder.entity(new ByteArrayHttpEntity(payload.toString().getBytes()));
+
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, true, null);
+
+        try {
+            HttpResponse response = completable.get();
+
+            if (response.getStatusCode() == 200) {
+                JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
+                JsonElement authData = elem.getAsJsonObject().get("auth");
+                if (authData != null) {
+                    JsonElement clientToken = authData.getAsJsonObject().get("client_token");
+                    token = clientToken.getAsString();
+                }
+            } else if (response.getStatusCode() == 403 || response.getStatusCode() == 404){
+                JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
+                throw new VaultAccessException(new Exception("Access Error received from Vault: " + response.getStatusCode() + ", Detail: " + elem.toString()));
+            } else {
+                JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
+                throw new DefaultMuleException(new Exception("Unknown error received from Vault: " + response.getStatusCode()) + ", Detail: " + elem.toString());
+            }
+
+        } catch (InterruptedException | ExecutionException e ) {
+            logger.error("Exception encountered while authenticating", e);
+            throw new DefaultMuleException(e);
+        }
+
+        return token;
+    }
+
+    @Override
+    public boolean isValid() {
+        if (this.token == null || this.token.isEmpty()) {
+            try {
+                this.token = authenticate();
+            } catch (VaultAccessException | DefaultMuleException e) {
+                logger.error("Error Authenticating", e);
+            }
+        }
+        return this.token != null && !this.token.isEmpty();
     }
 }
