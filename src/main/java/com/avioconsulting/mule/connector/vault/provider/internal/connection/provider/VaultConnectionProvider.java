@@ -18,6 +18,8 @@ import org.mule.runtime.api.connection.PoolingConnectionProvider;
 import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 
+import org.mule.runtime.extension.api.annotation.param.display.Placement;
+import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.http.api.HttpService;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.client.HttpClientConfiguration;
@@ -49,7 +51,7 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
 
   @DisplayName("Secrets Engine Version")
   @Parameter
-  @Optional
+  @Optional(defaultValue = "v1")
   private EngineVersion engineVersion;
 
   @DisplayName("Vault Token")
@@ -57,15 +59,30 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
   private String vaultToken;
 
   @Parameter
+  @Placement(tab = "Security")
   @Optional
   private TlsContextFactory tlsContextFactory;
+
+  @DisplayName("Response Timeout")
+  @Summary("Maximum time to wait for a response in milliseconds")
+  @Parameter
+  @Placement(tab = "Settings")
+  @Optional(defaultValue = "5000")
+  private Integer responseTimeout;
+
+  @DisplayName("Follow Redirects")
+  @Summary("Specifies whether to follow redirects or not")
+  @Parameter
+  @Placement(tab = "Settings")
+  @Optional(defaultValue = "false")
+  private boolean followRedirects;
 
   @Override
   public VaultConnection connect() throws ConnectionException {
     if (engineVersion == null) {
-      engineVersion = EngineVersion.v2;
+      engineVersion = EngineVersion.v1;
     }
-    return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, engineVersion);
+    return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, engineVersion, responseTimeout, followRedirects);
   }
 
   @Override

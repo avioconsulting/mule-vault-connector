@@ -23,11 +23,11 @@
     </vault:config>
 
     <flow name="getSecretFlowTrustStore">
-        <vault:get-secret config-ref="basicTrustStoreConfig" path="secret/test/mysecret"/>
+        <vault:get-secret config-ref="basicTrustStoreConfig" path="secret/data/test/mysecret"/>
     </flow>
 
     <flow name="getSecretFlowJksConfig">
-        <vault:get-secret config-ref="jksConfig" path="secret/test/mysecret"/>
+        <vault:get-secret config-ref="jksConfig" path="secret/data/test/mysecret"/>
     </flow>
 
 </mule>

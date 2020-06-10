@@ -24,42 +24,6 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
 
   private static final Logger logger = LoggerFactory.getLogger(BasicVaultConnection.class);
 
-
-/* *************************************** */
-/*  Java Vault API classes no longer used. */
-/* *************************************** */
-//  public BasicVaultConnection(String id, String vaultToken, String vaultUrl, SSLProperties sslProperties,
-//                              EngineVersion engineVersion) throws ConnectionException {
-//    this.id = id;
-//    try {
-//      this.vaultConfig = new VaultConfig().address(vaultUrl);
-//      if (engineVersion != null) {
-//        this.vaultConfig = this.vaultConfig.engineVersion(engineVersion.getEngineVersionNumber());
-//      }
-//      SslConfig ssl = getVaultSSLConfig(sslProperties);
-//      System.out.println("BasicVaultConnection: trust store file: " + sslProperties.getTrustStoreFile());
-//      this.vault = new Vault(this.vaultConfig.token(vaultToken).sslConfig(ssl.build()).build());
-//      LookupResponse lookupResponse = this.vault.auth().lookupSelf();
-//      renewable = lookupResponse.isRenewable();
-//      long creationTimeSec = lookupResponse.getCreationTime();
-//      long ttl = lookupResponse.getTTL();
-//
-//      if (creationTimeSec > 0) {
-//        Instant creationTime = Instant.ofEpochSecond(creationTimeSec);
-//        if (ttl > 0) {
-//          this.expirationTime = creationTime.plusSeconds(ttl);
-//        } else {
-//          this.expirationTime = null;
-//        }
-//      }
-//
-//      this.valid = true;
-//    } catch (VaultException ve) {
-//      logger.error("Error establishing Vault connection", ve);
-//      throw new ConnectionException(ve.getMessage(), ve.getCause());
-//    }
-//  }
-
   /**
    * Construct a connection using a Vault Token
    *
@@ -68,13 +32,15 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
    * @param httpClient     HttpClient to use to make the connection
    * @param engineVersion  The version of the secret engine to use, defaulting to Version 2
    */
-  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, EngineVersion engineVersion) {
+  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, EngineVersion engineVersion, Integer requestTimeout, Boolean followRedirects) {
     this.client = httpClient;
     this.token = vaultToken;
     this.vaultUrl = vaultUrl;
     this.engineVersion = engineVersion;
+    this.requestTimeout = requestTimeout;
+    this.followRedirects = followRedirects;
 
-    this.vConfig = new VaultConfig(httpClient, vaultUrl, 30, vaultToken, engineVersion.getEngineVersionNumber());
+    this.vConfig = new VaultConfig(httpClient, vaultUrl, requestTimeout, vaultToken, engineVersion.getEngineVersionNumber(), followRedirects);
   }
 
   @Override
@@ -85,7 +51,7 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
     builder.addHeader("X-Vault-Token", token);
     builder.method(HttpConstants.Method.GET);
     logger.info("isValid() " + builder.build().toString());
-    CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, true, null);
+    CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
 
     try {
       HttpResponse response = completable.get();

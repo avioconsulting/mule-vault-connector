@@ -17,7 +17,6 @@ import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
-import org.mule.runtime.extension.api.annotation.param.ParameterGroup;
 import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
@@ -53,17 +52,16 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
 
     @DisplayName("Secrets Engine Version")
     @Parameter
-    @Optional
+    @Optional(defaultValue = "v1")
     private EngineVersion engineVersion;
 
     @Parameter
-    @Optional
     private TlsContextFactory tlsContextFactory;
 
     @DisplayName("Authentication Mount Path")
     @Summary("Mount path for TLS auth method. If not set, cert will be used")
     @Parameter
-    @Optional
+    @Optional(defaultValue = "cert")
     private String mount;
 
     @DisplayName("Certificate Role")
@@ -72,10 +70,27 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
     @Optional
     private String certificateRole;
 
+    @DisplayName("Response Timeout")
+    @Summary("Maximum time to wait for a response in milliseconds")
+    @Parameter
+    @Placement(tab = "Settings")
+    @Optional(defaultValue = "5000")
+    private Integer responseTimeout;
+
+    @DisplayName("Follow Redirects")
+    @Summary("Specifies whether to follow redirects or not")
+    @Parameter
+    @Placement(tab = "Settings")
+    @Optional(defaultValue = "false")
+    private boolean followRedirects;
+
     @Override
     public VaultConnection connect() throws ConnectionException {
+        if (engineVersion == null) {
+            engineVersion = EngineVersion.v1;
+        }
         try {
-            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion);
+            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion, responseTimeout, followRedirects);
         } catch (DefaultMuleException | VaultAccessException e) {
             throw new ConnectionException(e);
         }

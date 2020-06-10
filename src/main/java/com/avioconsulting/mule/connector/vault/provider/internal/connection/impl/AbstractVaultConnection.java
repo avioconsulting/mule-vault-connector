@@ -6,31 +6,23 @@ import com.avioconsulting.mule.connector.vault.provider.api.error.exception.Vaul
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
-import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.json.Json;
 import com.bettercloud.vault.response.AuthResponse;
-import com.bettercloud.vault.response.LogicalResponse;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
-import org.mule.runtime.http.api.domain.entity.InputStreamHttpEntity;
 import org.mule.runtime.http.api.domain.message.request.HttpRequest;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -66,6 +58,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     protected EngineVersion engineVersion;
     protected String token;
     protected String vaultUrl;
+    protected Integer requestTimeout;
+    protected Boolean followRedirects;
 
     public AbstractVaultConnection() {
         id = null;
@@ -325,7 +319,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 addHeader(VAULT_TOKEN_HEADER, vConfig.getToken()).
                 method((HttpConstants.Method.GET));
         logger.info("read() Uri: " + builder.getUri() + " and header: " + vConfig.getToken());
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), true, null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), vConfig.isFollowRedirects(), null);
 
         HttpResponse response = completable.get();
         logger.info("read()  Response Code - " + response.getStatusCode());
@@ -350,7 +344,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 //                switched from input stream entity, to byte array
         entity(new ByteArrayHttpEntity(secretData.getBytes()));
 
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), true, null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), vConfig.isFollowRedirects(), null);
         HttpResponse response = completable.get();
 
         if (response.getStatusCode() == 200 && response.getEntity() != null) {

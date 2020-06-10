@@ -8,17 +8,19 @@ public class VaultConfig {
     private Integer timeout;
     private String token;
     private Integer kvVersion = 1;
+    private Boolean followRedirects;
 
     public VaultConfig() {
         super();
     }
 
-    public VaultConfig(HttpClient httpClient, String baseUrl, Integer timeout, String token, Integer kvVersion) {
+    public VaultConfig(HttpClient httpClient, String baseUrl, Integer timeout, String token, Integer kvVersion, Boolean followRedirects) {
         this.httpClient = httpClient;
         this.baseUrl = baseUrl;
         this.timeout = timeout;
         this.token = token;
         this.kvVersion = kvVersion;
+        this.followRedirects = followRedirects;
     }
 
     public String getApiBaseUrl() {
@@ -67,5 +69,17 @@ public class VaultConfig {
 
     public void setKvVersion(Integer kvVersion) {
         this.kvVersion = kvVersion;
+    }
+
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
+    }
+
+    public boolean isFollowRedirects() {
+        return followRedirects;
+    }
+
+    public void setFollowRedirects(boolean followRedirects) {
+        this.followRedirects = followRedirects;
     }
 }

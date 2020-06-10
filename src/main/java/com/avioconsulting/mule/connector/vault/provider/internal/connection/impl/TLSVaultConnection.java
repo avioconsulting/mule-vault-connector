@@ -32,20 +32,18 @@ public class TLSVaultConnection extends AbstractVaultConnection {
     private final String authMount;
     private String certificateRole;
 
-    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion) throws VaultAccessException, DefaultMuleException{
+    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion, Integer requestTimeout, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
         super();
         this.client = httpClient;
         this.authMount = authMount;
         this.certificateRole = certRole;
         this.vaultUrl = vaultUrl;
-        if (engineVersion != null) {
-            this.engineVersion = engineVersion;
-        } else {
-            this.engineVersion = EngineVersion.v2;
-        }
+        this.requestTimeout = requestTimeout;
+        this.followRedirects = followRedirects;
+        this.engineVersion = engineVersion;
 
         this.token = authenticate();
-        this.vConfig = new VaultConfig(this.client, this.vaultUrl, 30, this.token, this.engineVersion.getEngineVersionNumber());
+        this.vConfig = new VaultConfig(this.client, this.vaultUrl, requestTimeout, this.token, this.engineVersion.getEngineVersionNumber(), followRedirects);
     }
 
     @Override
@@ -79,7 +77,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
         }
 
 
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, true, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();
