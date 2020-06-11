@@ -1,27 +1,48 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.IamVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
-import org.mule.runtime.api.connection.PoolingConnectionProvider;
+import org.mule.runtime.api.exception.DefaultMuleException;
+import org.mule.runtime.api.exception.MuleException;
+import org.mule.runtime.api.lifecycle.Initialisable;
+import org.mule.runtime.api.lifecycle.Startable;
+import org.mule.runtime.api.lifecycle.Stoppable;
+import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
+import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
-import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
+import org.mule.runtime.http.api.HttpService;
+import org.mule.runtime.http.api.client.HttpClient;
+import org.mule.runtime.http.api.client.HttpClientConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 
 /**
  * This class provides {@link IamVaultConnection} instances and the functionality to disconnect and validate those
- * connections. This is a {@link PoolingConnectionProvider} which will pool and reuse connections.
+ * connections. This is a {@link CachedConnectionProvider} which will cache and reuse connections.
  */
 @DisplayName("IAM Connection")
 @Alias("iam-connection")
-public class VaultIamConnectionProvider implements CachedConnectionProvider<VaultConnection> {
+public class VaultIamConnectionProvider implements CachedConnectionProvider<VaultConnection>, Startable, Stoppable {
+
+    private static final Logger logger = LoggerFactory.getLogger(VaultIamConnectionProvider.class);
+
+    @Inject
+    private HttpService httpService;
+    private HttpClient httpClient;
+
+    @RefName
+    private String configName;
 
     @DisplayName("Vault URL")
     @Parameter
@@ -38,21 +59,18 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     private String awsAuthMount;
 
     @DisplayName("Vault Role")
-    @Summary("Name of the role against which the login is being attempted. If role is not specified, then the login " +
-            "endpoint looks for a role bearing the name of the AMI ID of the EC2 instance that is trying to login if " +
-            "using the ec2 auth method, or the \"friendly name\" (i.e., role name or username) of the IAM principal " +
-            "authenticated. If a matching role is not found, login fails.")
+    @Summary("Name of the role against which the login is being attempted.")
     @Optional
     @Parameter
     private String vaultRole;
 
     @DisplayName("IAM Request URL")
-    @Summary("Most likely https://sts.amazonaws.com/")
+    @Summary("Base64 encoded used in the signed request. Most likely aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8=")
     @Parameter
     private String iamRequestUrl;
 
     @DisplayName("IAM Request Body")
-    @Summary("Body of the signed request")
+    @Summary("Base64 encoded body of the signed request. Most likely QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ==")
     @Parameter
     private String iamRequestBody;
 
@@ -60,25 +78,59 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     @Parameter
     private String iamRequestHeaders;
 
-    @DisplayName("SSL Properties")
     @Parameter
     @Optional
-    @Placement(tab = Placement.CONNECTION_TAB)
-    private SSLProperties sslProperties;
+    private TlsContextFactory tlsContextFactory;
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        return new IamVaultConnection(vaultUrl + ":" + vaultRole + ":" + awsAuthMount, vaultUrl, awsAuthMount,
-                vaultRole, iamRequestUrl, iamRequestBody, iamRequestHeaders, sslProperties, engineVersion);
+        try {
+            return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, iamRequestUrl, iamRequestBody, iamRequestHeaders);
+        } catch (VaultAccessException | DefaultMuleException e) {
+            throw new ConnectionException(e);
+        }
+
     }
 
     @Override
-    public void disconnect(VaultConnection vaultConnection) {
-
+    public void disconnect(VaultConnection connection) {
+        try {
+            connection.invalidate();
+        } catch (Exception e) {
+            logger.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
+        }
     }
 
     @Override
-    public ConnectionValidationResult validate(VaultConnection vaultConnection) {
-        return null;
+    public ConnectionValidationResult validate(VaultConnection connection) {
+        if (connection.isValid()) {
+            return ConnectionValidationResult.success();
+        } else {
+            return ConnectionValidationResult.failure("Connection Invalid", null);
+        }
+    }
+
+    @Override
+    public void start() throws MuleException {
+        if (tlsContextFactory instanceof Initialisable) {
+            ((Initialisable) tlsContextFactory).initialise();
+        }
+        HttpClientConfiguration.Builder builder = new HttpClientConfiguration.Builder();
+        if (tlsContextFactory != null) {
+            if (tlsContextFactory.getTrustStoreConfiguration() != null) {
+                logger.info("Vault TLS Trust Store Path: " + tlsContextFactory.getTrustStoreConfiguration().getPath());
+            }
+            if (tlsContextFactory.getKeyStoreConfiguration() != null) {
+                logger.info("Vault TLS Key Store Path: " + tlsContextFactory.getKeyStoreConfiguration().getPath());
+            }
+            builder.setTlsContextFactory(tlsContextFactory);
+        }
+        httpClient = httpService.getClientFactory().create(builder.setName(configName).build());
+        httpClient.start();
+    }
+
+    @Override
+    public void stop() throws MuleException {
+        httpClient.stop();
     }
 }
