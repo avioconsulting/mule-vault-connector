@@ -3,10 +3,6 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.Ec2VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
-import com.bettercloud.vault.rest.Rest;
-import com.bettercloud.vault.rest.RestException;
-import com.bettercloud.vault.rest.RestResponse;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -31,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.nio.charset.StandardCharsets;
 
 /**
  * This class provides {@link Ec2VaultConnection} instances and the functionality to disconnect and validate those
@@ -98,8 +93,23 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     private boolean useInstanceMetadata = false;
 
     @Parameter
+    @Placement(tab = "Security")
     @Optional
     private TlsContextFactory tlsContextFactory;
+
+    @DisplayName("Response Timeout")
+    @Summary("Maximum time to wait for a response in milliseconds")
+    @Parameter
+    @Placement(tab = "Settings")
+    @Optional(defaultValue = "5000")
+    private Integer responseTimeout;
+
+    @DisplayName("Follow Redirects")
+    @Summary("Specifies whether to follow redirects or not")
+    @Parameter
+    @Placement(tab = "Settings")
+    @Optional(defaultValue = "false")
+    private boolean followRedirects;
 
     /**
      * Constructs an {@link Ec2VaultConnection}. When useInstanceMetadata is true, the PKCS7 value is looked up from
@@ -110,8 +120,11 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
      */
     @Override
     public VaultConnection connect() throws ConnectionException {
+        if (engineVersion == null) {
+            engineVersion = EngineVersion.v1;
+        }
         try {
-            return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, pkcs7, nonce, identity, signature, useInstanceMetadata);
+            return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, pkcs7, nonce, identity, signature, useInstanceMetadata, responseTimeout, followRedirects);
         } catch (DefaultMuleException e) {
             throw new ConnectionException(e);
         }

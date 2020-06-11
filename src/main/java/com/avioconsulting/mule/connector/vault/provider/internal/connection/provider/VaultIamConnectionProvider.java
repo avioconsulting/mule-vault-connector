@@ -18,6 +18,7 @@ import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
+import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.http.api.HttpService;
 import org.mule.runtime.http.api.client.HttpClient;
@@ -79,13 +80,32 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     private String iamRequestHeaders;
 
     @Parameter
+    @Placement(tab = "Security")
     @Optional
     private TlsContextFactory tlsContextFactory;
 
+    @DisplayName("Response Timeout")
+    @Summary("Maximum time to wait for a response in milliseconds")
+    @Parameter
+    @Placement(tab = "Settings")
+    @Optional(defaultValue = "5000")
+    private Integer responseTimeout;
+
+    @DisplayName("Follow Redirects")
+    @Summary("Specifies whether to follow redirects or not")
+    @Parameter
+    @Placement(tab = "Settings")
+    @Optional(defaultValue = "false")
+    private boolean followRedirects;
+
+
     @Override
     public VaultConnection connect() throws ConnectionException {
+        if (engineVersion == null) {
+            engineVersion = EngineVersion.v1;
+        }
         try {
-            return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, iamRequestUrl, iamRequestBody, iamRequestHeaders);
+            return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, iamRequestUrl, iamRequestBody, iamRequestHeaders, responseTimeout, followRedirects);
         } catch (VaultAccessException | DefaultMuleException e) {
             throw new ConnectionException(e);
         }

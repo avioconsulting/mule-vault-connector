@@ -35,7 +35,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
     private String iamRequestHeaders;
 
     public IamVaultConnection(String vaultUrl, String authMount, String role, HttpClient httpClient, EngineVersion engineVersion, String iamRequestUrl,
-                              String iamRequestBody, String iamRequestHeaders) throws VaultAccessException, DefaultMuleException {
+                              String iamRequestBody, String iamRequestHeaders, Integer requestTimeout, boolean followRedirects) throws VaultAccessException, DefaultMuleException {
         super();
         this.client = httpClient;
         this.authMount = authMount;
@@ -44,14 +44,12 @@ public class IamVaultConnection extends AbstractVaultConnection {
         this.iamRequestBody = iamRequestBody;
         this.iamRequestHeaders = iamRequestHeaders;
         this.vaultUrl = vaultUrl;
-        if (engineVersion != null) {
-            this.engineVersion = engineVersion;
-        } else {
-            this.engineVersion = EngineVersion.v2;
-        }
+        this.engineVersion = engineVersion;
+        this.requestTimeout = requestTimeout;
+        this.followRedirects = followRedirects;
 
         this.token = authenticate();
-        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(this.client, this.vaultUrl, 30, this.token, this.engineVersion.getEngineVersionNumber());
+        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(this.client, this.vaultUrl, requestTimeout, this.token, this.engineVersion.getEngineVersionNumber(), followRedirects);
     }
 
     public String authenticate() throws VaultAccessException, DefaultMuleException {
@@ -77,7 +75,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
         payload.addProperty("iam_request_body", this.iamRequestBody);
         builder.entity(new ByteArrayHttpEntity(payload.toString().getBytes()));
 
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, true, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();

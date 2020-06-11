@@ -43,15 +43,10 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
     private String signature;
     private boolean useInstanceMetadata;
 
-    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, EngineVersion engineVersion, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata) throws DefaultMuleException {
+    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, EngineVersion engineVersion, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata, Integer requestTimeout, boolean followRedirects) throws DefaultMuleException {
         this.vaultUrl = vaultUrl;
         this.client = httpClient;
-        if (engineVersion != null) {
-            this.engineVersion = engineVersion;
-        } else {
-            this.engineVersion = EngineVersion.v2;
-        }
-
+        this.engineVersion = engineVersion;
         this.authMount = authMount;
         this.role = awsRole;
         this.pkcs7 = pkcs7;
@@ -59,9 +54,11 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         this.identity = identity;
         this.signature = signature;
         this.useInstanceMetadata = useInstanceMetadata;
+        this.requestTimeout = requestTimeout;
+        this.followRedirects = followRedirects;
 
         this.token = authenticate();
-        this.vConfig = new VaultConfig(this.client, this.vaultUrl, 30, this.token, this.engineVersion.getEngineVersionNumber());
+        this.vConfig = new VaultConfig(this.client, this.vaultUrl, this.requestTimeout, this.token, this.engineVersion.getEngineVersionNumber(), this.followRedirects);
     }
 
     @Override
@@ -115,7 +112,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         }
         builder.entity(new ByteArrayHttpEntity(payload.toString().getBytes()));
 
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, true, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();
@@ -164,7 +161,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         HttpRequestBuilder builder = HttpRequest.builder().
                 uri(imdsUri).
                 method(HttpConstants.Method.GET);
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, false, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();
