@@ -11,15 +11,26 @@ import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
+import org.mule.runtime.api.exception.DefaultMuleException;
+import org.mule.runtime.api.exception.MuleException;
+import org.mule.runtime.api.lifecycle.Initialisable;
+import org.mule.runtime.api.lifecycle.Startable;
+import org.mule.runtime.api.lifecycle.Stoppable;
+import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
+import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
+import org.mule.runtime.http.api.HttpService;
+import org.mule.runtime.http.api.client.HttpClient;
+import org.mule.runtime.http.api.client.HttpClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -28,12 +39,16 @@ import java.nio.charset.StandardCharsets;
  */
 @DisplayName("EC2 Connection")
 @Alias("ec2-connection")
-public class VaultEc2ConnectionProvider implements CachedConnectionProvider<VaultConnection> {
+public class VaultEc2ConnectionProvider implements CachedConnectionProvider<VaultConnection>, Startable, Stoppable {
 
-    // This is the URI to use to retrieve the PKCS7 Signature
-    // See: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html
-    private static final String INSTANCE_PKCS7_URI = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7";
     private static final Logger logger = LoggerFactory.getLogger(VaultEc2ConnectionProvider.class);
+
+    @Inject
+    private HttpService httpService;
+    private HttpClient httpClient;
+
+    @RefName
+    private String configName;
 
     @DisplayName("Vault URL")
     @Parameter
@@ -71,16 +86,20 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     @Parameter
     private String signature;
 
+    @DisplayName("Nonce")
+    @Summary("Nonce to be used for subsequent login requests. If not provided, reauthentication will not be allowed.")
+    @Optional
+    @Parameter
+    private String nonce;
+
     @DisplayName("Use Instance Metadata")
     @Summary("Retrieve Instance metadata")
     @Parameter
     private boolean useInstanceMetadata = false;
 
-    @DisplayName("SSL Properties")
     @Parameter
     @Optional
-    @Placement(tab = Placement.CONNECTION_TAB)
-    private SSLProperties sslProperties;
+    private TlsContextFactory tlsContextFactory;
 
     /**
      * Constructs an {@link Ec2VaultConnection}. When useInstanceMetadata is true, the PKCS7 value is looked up from
@@ -91,23 +110,11 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
      */
     @Override
     public VaultConnection connect() throws ConnectionException {
-        if (useInstanceMetadata) {
-            pkcs7 = lookupPKCS7();
+        try {
+            return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, pkcs7, nonce, identity, signature, useInstanceMetadata);
+        } catch (DefaultMuleException e) {
+            throw new ConnectionException(e);
         }
-        boolean pkcsUnavailable = pkcs7 == null || pkcs7.isEmpty();
-        boolean identityUnavailable = identity == null || identity.isEmpty() || signature == null || signature.isEmpty();
-        if (pkcsUnavailable && identityUnavailable) {
-            logger.error("PKCS7 Signature, Identity Document, and Identity Signature are all null or empty");
-            throw new ConnectionException("PKCS7 Signature or the Identity Document and Signature are required");
-        }
-        StringBuilder idBuilder = new StringBuilder(vaultUrl + ":" + vaultRole);
-        if (!pkcsUnavailable) {
-            idBuilder.append(":" + pkcs7);
-        } else {
-            idBuilder.append(":" + identity);
-        }
-        return new Ec2VaultConnection(idBuilder.toString(),vaultUrl,vaultRole,pkcs7,null,identity,
-                signature,awsAuthMount, sslProperties, engineVersion);
     }
 
     @Override
@@ -124,21 +131,29 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
         }
     }
 
-    /**
-     * EC2 Provides a service to retrieve the instance identity. This method uses that service to look up the PKCS7.
-     *
-     * @return the PKCS7 value with the '\n' characters removed
-     */
-    private String lookupPKCS7() {
-        String pkcs7 = null;
-        try {
-            final RestResponse response = new Rest().url(INSTANCE_PKCS7_URI).get();
-            String responseStr = new String(response.getBody(), StandardCharsets.UTF_8);
-            // remove \n characters
-            pkcs7 = responseStr.replaceAll("\n", "");
-        } catch (RestException re) {
-            logger.error("Error looking up PKCS7 from Metadata Service",re);
+
+
+    @Override
+    public void start() throws MuleException {
+        if (tlsContextFactory instanceof Initialisable) {
+            ((Initialisable) tlsContextFactory).initialise();
         }
-        return pkcs7;
+        HttpClientConfiguration.Builder builder = new HttpClientConfiguration.Builder();
+        if (tlsContextFactory != null) {
+            if (tlsContextFactory.getTrustStoreConfiguration() != null) {
+                logger.info("Vault TLS Trust Store Path: " + tlsContextFactory.getTrustStoreConfiguration().getPath());
+            }
+            if (tlsContextFactory.getKeyStoreConfiguration() != null) {
+                logger.info("Vault TLS Key Store Path: " + tlsContextFactory.getKeyStoreConfiguration().getPath());
+            }
+            builder.setTlsContextFactory(tlsContextFactory);
+        }
+        httpClient = httpService.getClientFactory().create(builder.setName(configName).build());
+        httpClient.start();
+    }
+
+    @Override
+    public void stop() throws MuleException {
+        httpClient.stop();
     }
 }

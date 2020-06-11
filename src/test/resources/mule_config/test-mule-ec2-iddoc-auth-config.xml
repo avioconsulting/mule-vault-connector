@@ -1,17 +1,33 @@
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd
+          http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 
     <vault:config name="config" >
         <vault:ec2-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" useInstanceMetadata="false" identity="test" signature="test">
-            <vault:ssl-properties pemFile="mockserver/mockserver-root.pem"/>
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:ec2-connection>
+    </vault:config>
+
+    <vault:config name="config-metadata" >
+        <vault:ec2-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" useInstanceMetadata="true">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
         </vault:ec2-connection>
     </vault:config>
 
     <flow name="getSecretFlow">
         <vault:get-secret config-ref="config" path="secret/test/mysecret"/>
+    </flow>
+
+    <flow name="getSecretMDSFlow">
+        <vault:get-secret config-ref="config-metadata" path="secret/test/mysecret"/>
     </flow>
 
 </mule>
