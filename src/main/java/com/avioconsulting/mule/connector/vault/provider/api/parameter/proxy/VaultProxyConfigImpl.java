@@ -60,26 +60,26 @@ public class VaultProxyConfigImpl implements VaultProxyConfig {
 
     @Override
     public String getHost() {
-        return null;
+        return host;
     }
 
     @Override
     public int getPort() {
-        return 0;
+        return port;
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return username;
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return password;
     }
 
     @Override
     public String getNonProxyHosts() {
-        return null;
+        return nonProxyHosts;
     }
 }
