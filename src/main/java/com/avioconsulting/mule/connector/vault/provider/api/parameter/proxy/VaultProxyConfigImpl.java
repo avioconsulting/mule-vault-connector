@@ -14,18 +14,22 @@ import java.util.Objects;
 public class VaultProxyConfigImpl implements VaultProxyConfig {
 
     @Parameter
+    @Summary("Host to route proxied requests to")
     private String host;
 
     @Parameter
+    @Summary("Port to route proxied requests to")
     private int port;
 
     @Parameter
     @Optional
+    @Summary("Username for proxy authentication")
     private String username;
 
     @Parameter
     @Optional
     @Password
+    @Summary("Password for proxy authentication")
     private String password;
 
     @Parameter
