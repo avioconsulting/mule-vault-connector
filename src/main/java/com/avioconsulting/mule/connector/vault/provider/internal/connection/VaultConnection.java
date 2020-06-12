@@ -5,6 +5,8 @@ import com.avioconsulting.mule.connector.vault.provider.api.error.exception.Unkn
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.bettercloud.vault.Vault;
 
+import java.io.InputStream;
+
 /**
  * Vault Connection Interface used for all Vault Connections
  *
@@ -26,7 +28,7 @@ public interface VaultConnection {
 
     void writeSecret(String path, String secret) throws VaultAccessException, UnknownVaultException;
 
-    String encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException;
+    InputStream encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException;
 
     String decryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException;
 

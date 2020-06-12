@@ -169,7 +169,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public String encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
+    public InputStream encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
         try {
             Map<String, Object> data = new HashMap<>();
             data.put("plaintext", Base64.getEncoder().encodeToString(plaintext.getBytes(StandardCharsets.UTF_8)));
@@ -181,7 +181,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             jo.addProperty("plaintext", encodedText);
             logger.info("encrypt() Sending: " + jo.toString());
             JsonObject response = write(transitMountpoint + "/encrypt/" + keyName, jo.toString());
-            return response.get("ciphertext").toString();
+            return new ByteArrayInputStream(response.get("ciphertext").toString().getBytes());
         } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException ve) {
             ve.printStackTrace();
             if (ve.getStatusCode() == 403) {
