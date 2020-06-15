@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides {@link TLSVaultConnection} instances and the functionality to disconnect and validate those
@@ -71,16 +72,23 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
     private String certificateRole;
 
     @DisplayName("Response Timeout")
-    @Summary("Maximum time to wait for a response in milliseconds")
+    @Summary("Maximum time to wait for a response")
     @Parameter
-    @Placement(tab = "Settings")
-    @Optional(defaultValue = "5000")
+    @Placement(tab = "Settings", order = 1)
+    @Optional(defaultValue = "5")
     private Integer responseTimeout;
+
+    @DisplayName("Response Timeout Unit")
+    @Summary("Time Unit to use for response timeout value")
+    @Parameter
+    @Placement(tab = "Settings", order = 2)
+    @Optional(defaultValue = "SECONDS")
+    private TimeUnit responseTimeoutUnit;
 
     @DisplayName("Follow Redirects")
     @Summary("Specifies whether to follow redirects or not")
     @Parameter
-    @Placement(tab = "Settings")
+    @Placement(tab = "Settings", order = 3)
     @Optional(defaultValue = "false")
     private boolean followRedirects;
 
@@ -90,7 +98,7 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
             engineVersion = EngineVersion.v1;
         }
         try {
-            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion, responseTimeout, followRedirects);
+            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion, responseTimeout, responseTimeoutUnit, followRedirects);
         } catch (DefaultMuleException | VaultAccessException e) {
             throw new ConnectionException(e);
         }

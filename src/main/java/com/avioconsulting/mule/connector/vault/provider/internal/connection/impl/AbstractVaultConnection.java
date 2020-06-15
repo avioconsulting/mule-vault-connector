@@ -19,9 +19,7 @@ import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
@@ -30,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract class implementing common methods on a VaultConnection
@@ -56,7 +55,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     protected EngineVersion engineVersion;
     protected String token;
     protected String vaultUrl;
-    protected Integer requestTimeout;
+    protected Integer responseTimeout;
+    protected TimeUnit responseTimeoutUnit;
     protected Boolean followRedirects;
 
     public AbstractVaultConnection() {
@@ -270,7 +270,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 addHeader(VAULT_TOKEN_HEADER, vConfig.getToken()).
                 method((HttpConstants.Method.GET));
         logger.info("read() Uri: " + builder.getUri() + " and header: " + vConfig.getToken());
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), vConfig.isFollowRedirects(), null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
 
         HttpResponse response = completable.get();
         logger.info("read()  Response Code - " + response.getStatusCode());
@@ -295,7 +295,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 //                switched from input stream entity, to byte array
         entity(new ByteArrayHttpEntity(secretData.getBytes()));
 
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), vConfig.isFollowRedirects(), null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
         HttpResponse response = completable.get();
 
         if (response.getStatusCode() == 200 && response.getEntity() != null) {

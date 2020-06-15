@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A connection to Vault using TLS authentication
@@ -32,18 +33,20 @@ public class TLSVaultConnection extends AbstractVaultConnection {
     private final String authMount;
     private String certificateRole;
 
-    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion, Integer requestTimeout, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
+    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
         super();
+        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, engineVersion.getEngineVersionNumber(), followRedirects);
         this.client = httpClient;
         this.authMount = authMount;
         this.certificateRole = certRole;
         this.vaultUrl = vaultUrl;
-        this.requestTimeout = requestTimeout;
+        this.responseTimeout = responseTimeout;
+        this.responseTimeoutUnit = responseTimeoutUnit;
         this.followRedirects = followRedirects;
         this.engineVersion = engineVersion;
 
         this.token = authenticate();
-        this.vConfig = new VaultConfig(this.client, this.vaultUrl, requestTimeout, this.token, this.engineVersion.getEngineVersionNumber(), followRedirects);
+        this.vConfig.setToken(this.token);
     }
 
     @Override
@@ -77,7 +80,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
         }
 
 
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();

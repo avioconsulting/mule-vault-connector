@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A connection to Vault using IAM to authenticate
@@ -35,8 +36,9 @@ public class IamVaultConnection extends AbstractVaultConnection {
     private String iamRequestHeaders;
 
     public IamVaultConnection(String vaultUrl, String authMount, String role, HttpClient httpClient, EngineVersion engineVersion, String iamRequestUrl,
-                              String iamRequestBody, String iamRequestHeaders, Integer requestTimeout, boolean followRedirects) throws VaultAccessException, DefaultMuleException {
+                              String iamRequestBody, String iamRequestHeaders, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws VaultAccessException, DefaultMuleException {
         super();
+        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit,  null, engineVersion.getEngineVersionNumber(), followRedirects);
         this.client = httpClient;
         this.authMount = authMount;
         this.role = role;
@@ -45,11 +47,12 @@ public class IamVaultConnection extends AbstractVaultConnection {
         this.iamRequestHeaders = iamRequestHeaders;
         this.vaultUrl = vaultUrl;
         this.engineVersion = engineVersion;
-        this.requestTimeout = requestTimeout;
+        this.responseTimeout = responseTimeout;
+        this.responseTimeoutUnit = responseTimeoutUnit;
         this.followRedirects = followRedirects;
 
         this.token = authenticate();
-        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(this.client, this.vaultUrl, requestTimeout, this.token, this.engineVersion.getEngineVersionNumber(), followRedirects);
+        this.vConfig.setToken(this.token);
     }
 
     public String authenticate() throws VaultAccessException, DefaultMuleException {
@@ -75,7 +78,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
         payload.addProperty("iam_request_body", this.iamRequestBody);
         builder.entity(new ByteArrayHttpEntity(payload.toString().getBytes()));
 
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();

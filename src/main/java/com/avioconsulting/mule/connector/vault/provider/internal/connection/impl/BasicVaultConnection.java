@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A connection to Vault using Token Authentication
@@ -32,15 +33,15 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
    * @param httpClient     HttpClient to use to make the connection
    * @param engineVersion  The version of the secret engine to use, defaulting to Version 2
    */
-  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, EngineVersion engineVersion, Integer requestTimeout, Boolean followRedirects) {
+  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, EngineVersion engineVersion, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) {
+    this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, vaultToken, engineVersion.getEngineVersionNumber(), followRedirects);
     this.client = httpClient;
     this.token = vaultToken;
     this.vaultUrl = vaultUrl;
     this.engineVersion = engineVersion;
-    this.requestTimeout = requestTimeout;
+    this.responseTimeout = responseTimeout;
+    this.responseTimeoutUnit = responseTimeoutUnit;
     this.followRedirects = followRedirects;
-
-    this.vConfig = new VaultConfig(httpClient, vaultUrl, requestTimeout, vaultToken, engineVersion.getEngineVersionNumber(), followRedirects);
   }
 
   @Override
@@ -51,7 +52,7 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
     builder.addHeader("X-Vault-Token", token);
     builder.method(HttpConstants.Method.GET);
     logger.info("isValid() " + builder.build().toString());
-    CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), this.requestTimeout, this.followRedirects, null);
+    CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
 
     try {
       HttpResponse response = completable.get();
