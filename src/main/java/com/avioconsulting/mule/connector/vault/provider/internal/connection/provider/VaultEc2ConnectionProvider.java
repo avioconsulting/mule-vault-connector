@@ -1,5 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.Ec2VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
@@ -101,6 +102,11 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     @Optional
     private TlsContextFactory tlsContextFactory;
 
+    @Parameter
+    @Optional
+    @Placement(tab = "Proxy")
+    private VaultProxyConfig proxyConfig;
+
     /**
      * Constructs an {@link Ec2VaultConnection}. When useInstanceMetadata is true, the PKCS7 value is looked up from
      * the AWS Metadata Service
@@ -147,6 +153,9 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
                 logger.info("Vault TLS Key Store Path: " + tlsContextFactory.getKeyStoreConfiguration().getPath());
             }
             builder.setTlsContextFactory(tlsContextFactory);
+        }
+        if (proxyConfig != null) {
+            builder.setProxyConfig(proxyConfig);
         }
         httpClient = httpService.getClientFactory().create(builder.setName(configName).build());
         httpClient.start();

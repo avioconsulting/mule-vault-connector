@@ -1,6 +1,7 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.provider;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.TLSVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.*;
@@ -17,7 +18,6 @@ import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
-import org.mule.runtime.extension.api.annotation.param.ParameterGroup;
 import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
@@ -72,6 +72,11 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
     @Optional
     private String certificateRole;
 
+    @Parameter
+    @Optional
+    @Placement(tab = "Proxy")
+    private VaultProxyConfig proxyConfig;
+
     @Override
     public VaultConnection connect() throws ConnectionException {
         try {
@@ -114,6 +119,9 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
                 logger.info("Vault TLS Key Store Path: " + tlsContextFactory.getKeyStoreConfiguration().getPath());
             }
             builder.setTlsContextFactory(tlsContextFactory);
+        }
+        if (proxyConfig != null) {
+            builder.setProxyConfig(proxyConfig);
         }
         httpClient = httpService.getClientFactory().create(builder.setName(configName).build());
         httpClient.start();
