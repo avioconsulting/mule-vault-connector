@@ -18,8 +18,9 @@ import org.mule.runtime.api.connection.ConnectionValidationResult;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
 import org.mule.runtime.extension.api.annotation.param.RefName;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
-
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
+import org.mule.runtime.extension.api.annotation.param.display.Summary;
+
 import org.mule.runtime.http.api.HttpService;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.client.HttpClientConfiguration;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides {@link BasicVaultConnection} instances and the functionality to disconnect and validate those
@@ -51,7 +53,7 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
 
   @DisplayName("Secrets Engine Version")
   @Parameter
-  @Optional
+  @Optional(defaultValue = "v1")
   private EngineVersion engineVersion;
 
   @DisplayName("Vault Token")
@@ -59,20 +61,44 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
   private String vaultToken;
 
   @Parameter
+  @Placement(tab = "Security")
   @Optional
   private TlsContextFactory tlsContextFactory;
+
+  @DisplayName("Response Timeout")
+  @Summary("Maximum time to wait for a response")
+  @Parameter
+  @Placement(tab = "Settings", order = 1)
+  @Optional(defaultValue = "5")
+  private Integer responseTimeout;
+
+  @DisplayName("Response Timeout Unit")
+  @Summary("Time Unit to use for response timeout value")
+  @Parameter
+  @Placement(tab = "Settings", order = 2)
+  @Optional(defaultValue = "SECONDS")
+  private TimeUnit responseTimeoutUnit;
+
+  @DisplayName("Follow Redirects")
+  @Summary("Specifies whether to follow redirects or not")
+  @Parameter
+  @Placement(tab = "Settings", order = 3)
+  @Optional(defaultValue = "false")
+  private boolean followRedirects;
 
   @Parameter
   @Optional
   @Placement(tab = "Proxy")
   private VaultProxyConfig proxyConfig;
 
+
   @Override
   public VaultConnection connect() throws ConnectionException {
     if (engineVersion == null) {
-      engineVersion = EngineVersion.v2;
+      engineVersion = EngineVersion.v1;
     }
-    return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, engineVersion);
+
+    return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, engineVersion, responseTimeout, responseTimeoutUnit, followRedirects);
   }
 
   @Override

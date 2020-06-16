@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class provides {@link IamVaultConnection} instances and the functionality to disconnect and validate those
@@ -81,8 +82,30 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     private String iamRequestHeaders;
 
     @Parameter
+    @Placement(tab = "Security")
     @Optional
     private TlsContextFactory tlsContextFactory;
+
+    @DisplayName("Response Timeout")
+    @Summary("Maximum time to wait for a response")
+    @Parameter
+    @Placement(tab = "Settings", order = 1)
+    @Optional(defaultValue = "5")
+    private Integer responseTimeout;
+
+    @DisplayName("Response Timeout Unit")
+    @Summary("Time Unit to use for response timeout value")
+    @Parameter
+    @Placement(tab = "Settings", order = 2)
+    @Optional(defaultValue = "SECONDS")
+    private TimeUnit responseTimeoutUnit;
+
+    @DisplayName("Follow Redirects")
+    @Summary("Specifies whether to follow redirects or not")
+    @Parameter
+    @Placement(tab = "Settings", order = 3)
+    @Optional(defaultValue = "false")
+    private boolean followRedirects;
 
     @Parameter
     @Optional
@@ -91,8 +114,11 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public VaultConnection connect() throws ConnectionException {
+        if (engineVersion == null) {
+            engineVersion = EngineVersion.v1;
+        }
         try {
-            return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, iamRequestUrl, iamRequestBody, iamRequestHeaders);
+            return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, iamRequestUrl, iamRequestBody, iamRequestHeaders, responseTimeout, responseTimeoutUnit, followRedirects);
         } catch (VaultAccessException | DefaultMuleException e) {
             throw new ConnectionException(e);
         }

@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -43,15 +44,11 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
     private String signature;
     private boolean useInstanceMetadata;
 
-    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, EngineVersion engineVersion, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata) throws DefaultMuleException {
+    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, EngineVersion engineVersion, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws DefaultMuleException {
+        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, engineVersion.getEngineVersionNumber(), followRedirects);
         this.vaultUrl = vaultUrl;
         this.client = httpClient;
-        if (engineVersion != null) {
-            this.engineVersion = engineVersion;
-        } else {
-            this.engineVersion = EngineVersion.v2;
-        }
-
+        this.engineVersion = engineVersion;
         this.authMount = authMount;
         this.role = awsRole;
         this.pkcs7 = pkcs7;
@@ -59,9 +56,13 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         this.identity = identity;
         this.signature = signature;
         this.useInstanceMetadata = useInstanceMetadata;
+        this.responseTimeout = responseTimeout;
+        this.responseTimeoutUnit = responseTimeoutUnit;
+        this.followRedirects = followRedirects;
 
         this.token = authenticate();
-        this.vConfig = new VaultConfig(this.client, this.vaultUrl, 30, this.token, this.engineVersion.getEngineVersionNumber());
+        vConfig.setToken(this.token);
+
     }
 
     @Override
@@ -115,7 +116,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         }
         builder.entity(new ByteArrayHttpEntity(payload.toString().getBytes()));
 
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, true, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();
@@ -164,7 +165,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         HttpRequestBuilder builder = HttpRequest.builder().
                 uri(imdsUri).
                 method(HttpConstants.Method.GET);
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), 500, false, null);
+        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
 
         try {
             HttpResponse response = completable.get();

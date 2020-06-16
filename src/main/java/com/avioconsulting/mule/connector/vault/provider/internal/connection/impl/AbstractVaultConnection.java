@@ -5,33 +5,21 @@ import com.avioconsulting.mule.connector.vault.provider.api.error.exception.Unkn
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.SSLProperties;
-import com.avioconsulting.mule.vault.api.client.VaultClient;
-import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
-import com.bettercloud.vault.json.Json;
 import com.bettercloud.vault.response.AuthResponse;
-import com.bettercloud.vault.response.LogicalResponse;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
-import org.mule.runtime.http.api.domain.entity.InputStreamHttpEntity;
 import org.mule.runtime.http.api.domain.message.request.HttpRequest;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
@@ -40,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract class implementing common methods on a VaultConnection
@@ -66,6 +55,9 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     protected EngineVersion engineVersion;
     protected String token;
     protected String vaultUrl;
+    protected Integer responseTimeout;
+    protected TimeUnit responseTimeoutUnit;
+    protected Boolean followRedirects;
 
     public AbstractVaultConnection() {
         id = null;
@@ -121,53 +113,6 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 logger.error("Error renewing Vault token",ve);
             }
         }
-    }
-
-    /**
-     * Construct {@link SslConfig} given the ssl-properties element for HTTPS connections to Vault
-     *
-     * @param sslProperties properties in the ssl-properties element
-     * @return {@link SslConfig} constructed from the ssl-properties attributes
-     * @throws VaultException if there is an error constructing the {@link SslConfig} object
-     */
-    public SslConfig getVaultSSLConfig(SSLProperties sslProperties) throws VaultException {
-        SslConfig ssl = new SslConfig();
-        if (sslProperties != null) {
-            if (sslProperties.getPemFile() != null && !sslProperties.getPemFile().isEmpty()) {
-                if (classpathResourceExists(sslProperties.getPemFile())) {
-                    ssl = ssl.pemResource(sslProperties.getPemFile());
-                } else {
-                    ssl = ssl.pemFile(new File(sslProperties.getPemFile()));
-                }
-                ssl = ssl.verify(true);
-            } else if (sslProperties.getTrustStoreFile() != null && !sslProperties.getTrustStoreFile().isEmpty()) {
-                if (classpathResourceExists(sslProperties.getTrustStoreFile())) {
-                    ssl = ssl.trustStoreResource(sslProperties.getTrustStoreFile());
-                } else {
-                    ssl = ssl.trustStoreFile(new File(sslProperties.getTrustStoreFile()));
-                }
-                ssl = ssl.verify(true);
-            }
-        }
-        return ssl;
-    }
-
-    /**
-     * Determine if the path resides on the classpath
-     *
-     * @param path the path to the file
-     * @return true if the file is on the classpath
-     */
-    protected boolean classpathResourceExists(String path) {
-        boolean fileExists = false;
-        URL fileUrl = getClass().getResource(path);
-        if (fileUrl != null) {
-            File file = new File(fileUrl.getFile());
-            if (file != null) {
-                fileExists = file.exists();
-            }
-        }
-        return fileExists;
     }
 
     @Override
@@ -325,7 +270,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 addHeader(VAULT_TOKEN_HEADER, vConfig.getToken()).
                 method((HttpConstants.Method.GET));
         logger.info("read() Uri: " + builder.getUri() + " and header: " + vConfig.getToken());
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), true, null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
 
         HttpResponse response = completable.get();
         logger.info("read()  Response Code - " + response.getStatusCode());
@@ -350,7 +295,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 //                switched from input stream entity, to byte array
         entity(new ByteArrayHttpEntity(secretData.getBytes()));
 
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeout(), true, null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
         HttpResponse response = completable.get();
 
         if (response.getStatusCode() == 200 && response.getEntity() != null) {
