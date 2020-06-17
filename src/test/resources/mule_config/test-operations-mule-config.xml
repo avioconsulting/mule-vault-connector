@@ -52,7 +52,7 @@
     </flow>
 
     <flow name="encryptDataFlow">
-        <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="plaintext" />
+        <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="cGxhaW50ZXh0" />
         <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 

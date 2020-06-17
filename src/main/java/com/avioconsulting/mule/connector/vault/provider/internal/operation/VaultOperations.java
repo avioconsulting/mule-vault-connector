@@ -64,7 +64,7 @@ public class VaultOperations {
    * @param connection a connected {@link VaultConnection}
    * @param transitMountpoint the mount point for the transit secret engine to use
    * @param keyName the key to use from the given endpoint
-   * @param plaintext the plaintext to be encrypted
+   * @param plaintext the plaintext to be encrypted - must be Base64 encoded
    * @return the encrypted value of the plaintext
    * @throws Exception if there is an issue from Vault
    */
@@ -82,7 +82,7 @@ public class VaultOperations {
    * @param transitMountpoint the mount point for the transit secret engine to use
    * @param keyName the key to use from the given endpoint
    * @param ciphertext the encrypted data to be decrypted
-   * @return the decrypted value of the ciphertext
+   * @return the Base64 encoded, decrypted value of the ciphertext
    * @throws Exception if there is an issue from Vault
    */
   @Throws(VaultErrorTypeProvider.class)

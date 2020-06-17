@@ -179,8 +179,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
         try {
             JsonObject jo = new JsonObject();
-            String encodedText = Base64.getEncoder().encodeToString(plaintext.getBytes(StandardCharsets.UTF_8));
-            jo.addProperty("plaintext", encodedText);
+            jo.addProperty("plaintext", plaintext);
             logger.info("encrypt() Sending: " + jo.toString());
 
             HttpResponse response = write(transitMountpoint + "/encrypt/" + keyName, jo.toString());
@@ -216,15 +215,13 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             JsonObject responseObject = handleResponse(response);
 
             logger.info("decrypt() returned: " + response.toString());
-            String encodedText = responseObject.get("plaintext").getAsString();
+            String encodedText = responseObject.get("plaintext").toString();
             logger.info("decrypt() plaintext: " + encodedText);
 
-            String decrypted = new String(Base64.getDecoder().decode(encodedText), StandardCharsets.UTF_8);
             Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
-            decrypted = "\"" + decrypted.trim() + "\"";
             return builder.attributes(new VaultResponseAttributes(response)).
-                    output(new ByteArrayInputStream(decrypted.getBytes())).
-                    length(decrypted.length()).
+                    output(new ByteArrayInputStream(encodedText.getBytes())).
+                    length(encodedText.length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
 
         } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException ve) {
