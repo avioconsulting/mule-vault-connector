@@ -53,17 +53,21 @@
 
     <flow name="getSecretFlowTrustStore">
         <vault:get-secret config-ref="basicTrustStoreConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="getSecretFlowJksConfig">
         <vault:get-secret config-ref="sharedTlsConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="getSecretFlowEc2Config">
         <vault:get-secret config-ref="ec2Config" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
     <flow name="getSecretFlowIamConfig">
         <vault:get-secret config-ref="iamConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
 

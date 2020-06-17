@@ -1,5 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
+import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
@@ -10,6 +11,8 @@ import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.response.AuthResponse;
 import com.google.gson.*;
+import org.mule.runtime.api.metadata.MediaType;
+import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
@@ -19,13 +22,13 @@ import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -116,12 +119,15 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public String getSecret(String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
         try {
-            Gson gson = new GsonBuilder().create();
-//                return gson.toJson(getVault().logical().read(path).getData());
-
-            return gson.toJson(read(path));
+            HttpResponse response = read(path);
+            JsonObject responseData = handleResponse(response);
+            Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
+            return builder.attributes(new VaultResponseAttributes(response)).
+                    output(new ByteArrayInputStream(responseData.toString().getBytes())).
+                    length(responseData.toString().length()).
+                    mediaType(MediaType.APPLICATION_JSON).build();
         } catch (InterruptedException e) {
             e.printStackTrace();
             throw new UnknownVaultException(e);
@@ -144,15 +150,17 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public void writeSecret(String path, String secret) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret) throws VaultAccessException, UnknownVaultException {
         try {
-//            Gson gson = new Gson();
-//            Type secretType = new TypeToken<Map<String, Object>>() {}.getType();
-//            Map<String, Object> secretData = gson.fromJson(secret, secretType);
-//            getVault().logical().write(path, secretData);
-
             logger.info("writeSecret() Is writing: " + secret);
-            write(path, secret);
+            HttpResponse response = write(path, secret);
+            JsonObject responseData = handleResponse(response);
+            Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
+            return builder.attributes(new VaultResponseAttributes(response)).
+                    output(new ByteArrayInputStream(responseData.toString().getBytes())).
+                    length(responseData.toString().length()).
+                    mediaType(MediaType.APPLICATION_JSON).build();
+
         } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException e) {
             e.printStackTrace();
             if (e.getStatusCode() == 403) {
@@ -163,27 +171,26 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 throw new UnknownVaultException(e);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             throw new UnknownVaultException(e);
         }
     }
 
     @Override
-    public InputStream encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
         try {
-            Map<String, Object> data = new HashMap<>();
-            data.put("plaintext", Base64.getEncoder().encodeToString(plaintext.getBytes(StandardCharsets.UTF_8)));
-//            LogicalResponse response = getVault().logical().write(transitMountpoint + "/encrypt/" + keyName, data);
-//            return response.getData().get("ciphertext");
-
             JsonObject jo = new JsonObject();
             String encodedText = Base64.getEncoder().encodeToString(plaintext.getBytes(StandardCharsets.UTF_8));
             jo.addProperty("plaintext", encodedText);
             logger.info("encrypt() Sending: " + jo.toString());
-            JsonObject response = write(transitMountpoint + "/encrypt/" + keyName, jo.toString());
-            return new ByteArrayInputStream(response.get("ciphertext").toString().getBytes());
+
+            HttpResponse response = write(transitMountpoint + "/encrypt/" + keyName, jo.toString());
+            JsonObject responseData = handleResponse(response);
+            Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
+            return builder.attributes(new VaultResponseAttributes(response)).
+                    output(new ByteArrayInputStream(responseData.get("ciphertext").toString().getBytes())).
+                    length(responseData.get("ciphertext").toString().length()).
+                    mediaType(MediaType.APPLICATION_JSON).build();
         } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException ve) {
-            ve.printStackTrace();
             if (ve.getStatusCode() == 403) {
                 logger.error("Access denied in Vault", ve);
                 throw new VaultAccessException(ve);
@@ -198,25 +205,27 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public String decryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
         try {
-//            Map<String, Object> data = new HashMap<>();
-//            data.put("ciphertext", ciphertext);
-//            LogicalResponse response = getVault().logical().write(transitMountpoint + "/decrypt/" + keyName, data);
-//            String decrypted = new String(Base64.getDecoder().decode(response.getData().get("plaintext")), StandardCharsets.UTF_8);
-//            return decrypted;
 
             JsonObject jo = new JsonObject();
             jo.addProperty("ciphertext", ciphertext);
             logger.info("decrypt() Sending: " + jo.toString());
-            JsonObject response = write(transitMountpoint + "/decrypt/" + keyName, jo.toString());
+
+            HttpResponse response = write(transitMountpoint + "/decrypt/" + keyName, jo.toString());
+            JsonObject responseObject = handleResponse(response);
 
             logger.info("decrypt() returned: " + response.toString());
-            String encodedText = response.get("plaintext").getAsString();
+            String encodedText = responseObject.get("plaintext").getAsString();
             logger.info("decrypt() plaintext: " + encodedText);
 
             String decrypted = new String(Base64.getDecoder().decode(encodedText), StandardCharsets.UTF_8);
-            return decrypted;
+            Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
+            decrypted = "\"" + decrypted.trim() + "\"";
+            return builder.attributes(new VaultResponseAttributes(response)).
+                    output(new ByteArrayInputStream(decrypted.getBytes())).
+                    length(decrypted.length()).
+                    mediaType(MediaType.APPLICATION_JSON).build();
 
         } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException ve) {
             ve.printStackTrace();
@@ -234,18 +243,20 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public String reencryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
         try {
-//            Map<String, Object> data = new HashMap<>();
-//            data.put("ciphertext", ciphertext);
-//            LogicalResponse response = getVault().logical().write(transitMountpoint + "/rewrap/" + keyName, data);
-//            return response.getData().get("ciphertext");
-
             JsonObject jo = new JsonObject();
-            jo.addProperty("plaintext", ciphertext);
+            jo.addProperty("ciphertext", ciphertext);
             logger.info("re-encrypt() Sending: " + jo.toString());
-            JsonObject response = write(transitMountpoint + "/rewrap/" + keyName, jo.toString());
-            return response.get("ciphertext").toString();
+
+            HttpResponse response = write(transitMountpoint + "/rewrap/" + keyName, jo.toString());
+            JsonObject responseData = handleResponse(response);
+            String reencryptedText = responseData.get("ciphertext").toString();
+            Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
+            return builder.attributes(new VaultResponseAttributes(response)).
+                    output(new ByteArrayInputStream(reencryptedText.getBytes())).
+                    length(reencryptedText.length()).
+                    mediaType(MediaType.APPLICATION_JSON).build();
         } catch (com.avioconsulting.mule.vault.api.client.exception.VaultException ve) {
             ve.printStackTrace();
             if (ve.getStatusCode() == 403) {
@@ -263,7 +274,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
 
     // implement http methods for reading a secret.
-    private JsonElement read(String path) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
+    private HttpResponse read(String path) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
         JsonElement secretData = new JsonObject();
         HttpRequestBuilder builder = HttpRequest.builder().
                 uri(vConfig.getApiBaseUrl() + massagePath(path)).
@@ -273,21 +284,11 @@ public abstract class AbstractVaultConnection implements VaultConnection {
         CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
 
         HttpResponse response = completable.get();
-        logger.info("read()  Response Code - " + response.getStatusCode());
-        if (response.getStatusCode() == 200 && response.getEntity() != null) {
-            JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-            JsonObject jsonObject = elem.getAsJsonObject();
-            secretData = jsonObject.get("data");
-        } else if (response.getStatusCode() >= 400) {
-            JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-            throw new com.avioconsulting.mule.vault.api.client.exception.VaultException(response.getStatusCode(), elem.toString());
-        }
-        return secretData;
+        return response;
     }
 
     // implement http methods for writing a secret.
-    private JsonObject write(String path, String secretData) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
-        JsonObject secretMetadata = new JsonObject();
+    private HttpResponse write(String path, String secretData) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
         HttpRequestBuilder builder = HttpRequest.builder().
                 uri(vConfig.getApiBaseUrl() + massagePath(path)).
                 addHeader(VAULT_TOKEN_HEADER, vConfig.getToken()).
@@ -297,17 +298,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
         CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
         HttpResponse response = completable.get();
-
-        if (response.getStatusCode() == 200 && response.getEntity() != null) {
-            // This is KV-V2
-            JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-            JsonObject jsonObject = elem.getAsJsonObject();
-            return jsonObject.getAsJsonObject("data");
-        } else if (response.getStatusCode() >= 400) {
-            JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-            throw new com.avioconsulting.mule.vault.api.client.exception.VaultException(response.getStatusCode(), elem.toString());
-        }
-        return secretMetadata;
+        return response;
     }
     // helper method to update path for v1 vs v2
     private String massagePath(final String path) {
@@ -331,4 +322,15 @@ public abstract class AbstractVaultConnection implements VaultConnection {
         return sb.toString();
     }
 
+    private JsonObject handleResponse(HttpResponse response) throws com.avioconsulting.mule.vault.api.client.exception.VaultException {
+        if (response.getStatusCode() == 200 && response.getEntity() != null) {
+            JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
+            JsonObject jsonObject = elem.getAsJsonObject();
+            return jsonObject.getAsJsonObject("data");
+        } else if (response.getStatusCode() >= 400) {
+            JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
+            throw new com.avioconsulting.mule.vault.api.client.exception.VaultException(response.getStatusCode(), elem != null ? elem.toString() : "");
+        }
+        return new JsonObject();
+    }
 }

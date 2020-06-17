@@ -1,19 +1,22 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.operation;
 
 import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
-import static org.mule.runtime.extension.api.annotation.param.MediaType.ANY;
 
+import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
 import org.mule.runtime.extension.api.annotation.error.Throws;
+import org.mule.runtime.extension.api.annotation.metadata.fixed.OutputJsonType;
 import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.Connection;
+import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 
 
 /**
@@ -35,7 +38,8 @@ public class VaultOperations {
    */
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = APPLICATION_JSON, strict = false)
-  public String getSecret(@Connection VaultConnection connection, String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
+  @OutputJsonType(schema = "metadata/secret-schema.json")
+  public Result<InputStream, VaultResponseAttributes> getSecret(@Connection VaultConnection connection, String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
     return connection.getSecret(path);
   }
 
@@ -49,8 +53,9 @@ public class VaultOperations {
    */
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = APPLICATION_JSON, strict = false)
-  public void writeSecret(@Connection VaultConnection connection, String path, String secret) throws VaultAccessException, UnknownVaultException {
-    connection.writeSecret(path, secret);
+  @OutputJsonType(schema = "metadata/secret-schema.json")
+  public Result<InputStream, VaultResponseAttributes> writeSecret(@Connection VaultConnection connection, String path, String secret) throws VaultAccessException, UnknownVaultException {
+    return connection.writeSecret(path, secret);
   }
 
   /**
@@ -64,8 +69,9 @@ public class VaultOperations {
    * @throws Exception if there is an issue from Vault
    */
   @Throws(VaultErrorTypeProvider.class)
-  @MediaType(value = ANY, strict = false)
-  public String encryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/encryption-schema.json")
+  public Result<InputStream, VaultResponseAttributes> encryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
     return connection.encryptData(transitMountpoint, keyName, plaintext);
   }
 
@@ -79,8 +85,10 @@ public class VaultOperations {
    * @return the decrypted value of the ciphertext
    * @throws Exception if there is an issue from Vault
    */
-  @MediaType(value = ANY, strict = false)
-  public String decryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
+  @Throws(VaultErrorTypeProvider.class)
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/encryption-schema.json")
+  public Result<InputStream, VaultResponseAttributes> decryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
     return connection.decryptData(transitMountpoint, keyName, ciphertext);
   }
 
@@ -94,8 +102,10 @@ public class VaultOperations {
    * @return the re-encrypted ciphertext
    * @throws Exception if there is an issue from Vault
    */
-  @MediaType(value = ANY, strict = false)
-  public String reencryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
+  @Throws(VaultErrorTypeProvider.class)
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/encryption-schema.json")
+  public Result<InputStream, VaultResponseAttributes> reencryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
     return connection.reencryptData(transitMountpoint, keyName, ciphertext);
   }
 

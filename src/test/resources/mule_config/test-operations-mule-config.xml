@@ -32,31 +32,38 @@
 
     <flow name="getSecretFlow">
         <vault:get-secret path="secret/test/mysecret" config-ref="configV2"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="missingFlow">
         <vault:get-secret config-ref="configV2" path="secret/does/not/exist"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="writeSecretFlow">
         <vault:write-secret config-ref="configV2" path="secret/test/mule-write" secret='{"name":"test"}'/>
         <vault:get-secret config-ref="configV2" path="secret/test/mule-write" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="dynamicSecretFlow">
         <vault:get-secret config-ref="configV1" path="database/creds/company-role"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="encryptDataFlow">
         <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="plaintext" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="decryptDataFlow">
         <vault:decrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="vault:v1:lajksdfklasdjflkjasdlfjkljaklsdfkljkldsjf=="/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="reEncryptFlow">
         <vault:reencrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="vault:v1:lkjsadlfkjklasdjfkljkljasdfkjf123sdfadf==" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
 </mule>
