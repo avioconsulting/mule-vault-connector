@@ -232,7 +232,7 @@ public class VaultOperationsTests extends MuleArtifactFunctionalTestCase {
                 .getPayload()
                 .getValue());
 
-        assertThat(payloadValue,containsString("test"));
+        assertThat(payloadValue,containsString("dGVzdAo="));
     }
 
     @Test

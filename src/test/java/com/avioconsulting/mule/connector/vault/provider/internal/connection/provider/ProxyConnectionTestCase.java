@@ -59,7 +59,7 @@ public class ProxyConnectionTestCase extends MuleArtifactFunctionalTestCase {
                 .when(
                         request()
                                 .withMethod("GET")
-                                .withPath("/v1/secret/data/test/mysecret")
+                                .withPath("/v1/secret/test/mysecret")
                                 .withHeader("X-Vault-Token", "MOCK_TOKEN")
                                 .withHeader("Host", "myvault.com:8200")
                                 .withHeader("Proxy-Connection")
@@ -90,7 +90,7 @@ public class ProxyConnectionTestCase extends MuleArtifactFunctionalTestCase {
                 .when(
                         request()
                                 .withMethod("GET")
-                                .withPath("/v1/secret/data/test/mysecret")
+                                .withPath("/v1/secret/test/mysecret")
                                 .withHeader("X-Vault-Token", "MOCK_TOKEN")
                                 .withHeader("Host", "myvault.com:8200")
                                 .withHeader("Proxy-Connection")

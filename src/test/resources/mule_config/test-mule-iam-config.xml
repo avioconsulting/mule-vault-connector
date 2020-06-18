@@ -21,6 +21,7 @@
 
     <flow name="getSecretFlow">
         <vault:get-secret config-ref="config" path="secret/data/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
 </mule>
