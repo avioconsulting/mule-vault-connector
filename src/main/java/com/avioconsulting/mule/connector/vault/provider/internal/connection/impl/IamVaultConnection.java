@@ -1,7 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -35,10 +34,10 @@ public class IamVaultConnection extends AbstractVaultConnection {
     private String iamRequestBody;
     private String iamRequestHeaders;
 
-    public IamVaultConnection(String vaultUrl, String authMount, String role, HttpClient httpClient, EngineVersion engineVersion, String iamRequestUrl,
+    public IamVaultConnection(String vaultUrl, String authMount, String role, HttpClient httpClient, String iamRequestUrl,
                               String iamRequestBody, String iamRequestHeaders, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws VaultAccessException, DefaultMuleException {
         super();
-        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit,  null, engineVersion.getEngineVersionNumber(), followRedirects);
+        this.vConfig = new com.avioconsulting.mule.vault.api.client.VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit,  null, 1, followRedirects);
         this.client = httpClient;
         this.authMount = authMount;
         this.role = role;
@@ -46,7 +45,6 @@ public class IamVaultConnection extends AbstractVaultConnection {
         this.iamRequestBody = iamRequestBody;
         this.iamRequestHeaders = iamRequestHeaders;
         this.vaultUrl = vaultUrl;
-        this.engineVersion = engineVersion;
         this.responseTimeout = responseTimeout;
         this.responseTimeoutUnit = responseTimeoutUnit;
         this.followRedirects = followRedirects;

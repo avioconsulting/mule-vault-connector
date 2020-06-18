@@ -1,7 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -33,9 +32,9 @@ public class TLSVaultConnection extends AbstractVaultConnection {
     private final String authMount;
     private String certificateRole;
 
-    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
+    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
         super();
-        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, engineVersion.getEngineVersionNumber(), followRedirects);
+        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, 1, followRedirects);
         this.client = httpClient;
         this.authMount = authMount;
         this.certificateRole = certRole;
@@ -43,7 +42,6 @@ public class TLSVaultConnection extends AbstractVaultConnection {
         this.responseTimeout = responseTimeout;
         this.responseTimeoutUnit = responseTimeoutUnit;
         this.followRedirects = followRedirects;
-        this.engineVersion = engineVersion;
 
         this.token = authenticate();
         this.vConfig.setToken(this.token);

@@ -1,7 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -44,11 +43,10 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
     private String signature;
     private boolean useInstanceMetadata;
 
-    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, EngineVersion engineVersion, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws DefaultMuleException {
-        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, engineVersion.getEngineVersionNumber(), followRedirects);
+    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws DefaultMuleException {
+        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, 1, followRedirects);
         this.vaultUrl = vaultUrl;
         this.client = httpClient;
-        this.engineVersion = engineVersion;
         this.authMount = authMount;
         this.role = awsRole;
         this.pkcs7 = pkcs7;

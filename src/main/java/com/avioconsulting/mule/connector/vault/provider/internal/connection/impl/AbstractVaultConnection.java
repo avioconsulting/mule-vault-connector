@@ -5,6 +5,7 @@ import com.avioconsulting.mule.connector.vault.provider.api.error.exception.Secr
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
+import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
@@ -25,10 +26,8 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +54,6 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     Instant expirationTime;
 
     protected HttpClient client;
-    protected EngineVersion engineVersion;
     protected String token;
     protected String vaultUrl;
     protected Integer responseTimeout;
@@ -119,9 +117,9 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> getSecret(String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
         try {
-            HttpResponse response = read(path);
+            HttpResponse response = read(path, overrides);
             JsonObject responseData = handleResponse(response);
             Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
             return builder.attributes(new VaultResponseAttributes(response)).
@@ -150,10 +148,10 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws VaultAccessException, UnknownVaultException {
         try {
             logger.info("writeSecret() Is writing: " + secret);
-            HttpResponse response = write(path, secret);
+            HttpResponse response = write(path, secret, overrides);
             JsonObject responseData = handleResponse(response);
             Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
             return builder.attributes(new VaultResponseAttributes(response)).
@@ -176,13 +174,13 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws VaultAccessException, UnknownVaultException {
         try {
             JsonObject jo = new JsonObject();
             jo.addProperty("plaintext", plaintext);
             logger.info("encrypt() Sending: " + jo.toString());
 
-            HttpResponse response = write(transitMountpoint + "/encrypt/" + keyName, jo.toString());
+            HttpResponse response = write(transitMountpoint + "/encrypt/" + keyName, jo.toString(), overrides);
             JsonObject responseData = handleResponse(response);
             Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
             return builder.attributes(new VaultResponseAttributes(response)).
@@ -204,14 +202,14 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws VaultAccessException, UnknownVaultException {
         try {
 
             JsonObject jo = new JsonObject();
             jo.addProperty("ciphertext", ciphertext);
             logger.info("decrypt() Sending: " + jo.toString());
 
-            HttpResponse response = write(transitMountpoint + "/decrypt/" + keyName, jo.toString());
+            HttpResponse response = write(transitMountpoint + "/decrypt/" + keyName, jo.toString(), overrides);
             JsonObject responseObject = handleResponse(response);
 
             logger.info("decrypt() returned: " + response.toString());
@@ -240,13 +238,13 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws VaultAccessException, UnknownVaultException {
         try {
             JsonObject jo = new JsonObject();
             jo.addProperty("ciphertext", ciphertext);
             logger.info("re-encrypt() Sending: " + jo.toString());
 
-            HttpResponse response = write(transitMountpoint + "/rewrap/" + keyName, jo.toString());
+            HttpResponse response = write(transitMountpoint + "/rewrap/" + keyName, jo.toString(), overrides);
             JsonObject responseData = handleResponse(response);
             String reencryptedText = responseData.get("ciphertext").toString();
             Result.Builder<InputStream, VaultResponseAttributes> builder = Result.builder();
@@ -271,52 +269,52 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
 
     // implement http methods for reading a secret.
-    private HttpResponse read(String path) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
+    private HttpResponse read(String path, ConfigurationOverrides overrides) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
         JsonElement secretData = new JsonObject();
         HttpRequestBuilder builder = HttpRequest.builder().
-                uri(vConfig.getApiBaseUrl() + massagePath(path)).
+                uri(vConfig.getApiBaseUrl() + massagePath(path, overrides.getEngineVersion().getEngineVersionNumber())).
                 addHeader(VAULT_TOKEN_HEADER, vConfig.getToken()).
                 method((HttpConstants.Method.GET));
         logger.info("read() Uri: " + builder.getUri() + " and header: " + vConfig.getToken());
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), (int) overrides.getResponseTimeoutUnit().toMillis(overrides.getResponseTimeout()), overrides.isFollowRedirects(), null);
 
         HttpResponse response = completable.get();
         return response;
     }
 
     // implement http methods for writing a secret.
-    private HttpResponse write(String path, String secretData) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
+    private HttpResponse write(String path, String secretData, ConfigurationOverrides overrides) throws com.avioconsulting.mule.vault.api.client.exception.VaultException, InterruptedException, ExecutionException {
         HttpRequestBuilder builder = HttpRequest.builder().
-                uri(vConfig.getApiBaseUrl() + massagePath(path)).
+                uri(vConfig.getApiBaseUrl() + massagePath(path, overrides.getEngineVersion().getEngineVersionNumber())).
                 addHeader(VAULT_TOKEN_HEADER, vConfig.getToken()).
                 method(HttpConstants.Method.POST).
 //                switched from input stream entity, to byte array
         entity(new ByteArrayHttpEntity(secretData.getBytes()));
 
-        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), vConfig.isFollowRedirects(), null);
+        CompletableFuture<HttpResponse> completable = vConfig.getHttpClient().sendAsync(builder.build(), (int) overrides.getResponseTimeoutUnit().toMillis(overrides.getResponseTimeout()), overrides.isFollowRedirects(), null);
         HttpResponse response = completable.get();
         return response;
     }
     // helper method to update path for v1 vs v2
-    private String massagePath(final String path) {
+    private String massagePath(final String path, final int kvVersion) {
         String massagedPath = path;
         if (path.startsWith("/")) {
             massagedPath = path.substring(1);
         }
 
-        String[] splitPath = massagedPath.split("/");
-        StringBuilder sb = new StringBuilder();
-        sb.append(splitPath[0]);
-        logger.info("messagePath()) Found kvVersion: " + vConfig.getKvVersion());
-        if (vConfig.getKvVersion() == 2) {
+        if (kvVersion == 2) {
+            String[] splitPath = massagedPath.split("/");
+            StringBuilder sb = new StringBuilder();
+            sb.append(splitPath[0]);
             sb.append("/data");
+            for (int i = 1; i < splitPath.length; i++) {
+                sb.append("/");
+                sb.append(splitPath[i]);
+            }
+            massagedPath = sb.toString();
         }
-        for (int i = 1; i < splitPath.length; i++) {
-            sb.append("/");
-            sb.append(splitPath[i]);
-        }
-        logger.info("messagePath() Message Path: " + sb.toString());
-        return sb.toString();
+        logger.info("messagePath() Message Path: " + massagedPath);
+        return massagedPath;
     }
 
     private JsonObject handleResponse(HttpResponse response) throws com.avioconsulting.mule.vault.api.client.exception.VaultException {

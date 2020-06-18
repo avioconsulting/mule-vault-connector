@@ -3,7 +3,6 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.Ec2VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -50,11 +49,6 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     @DisplayName("Vault URL")
     @Parameter
     private String vaultUrl;
-
-    @DisplayName("Secrets Engine Version")
-    @Parameter
-    @Optional
-    private EngineVersion engineVersion;
 
     @DisplayName("Vault AWS Authentication Mount")
     @Summary("Mount point for AWS Authentication in Vault")
@@ -135,11 +129,8 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
      */
     @Override
     public VaultConnection connect() throws ConnectionException {
-        if (engineVersion == null) {
-            engineVersion = EngineVersion.v1;
-        }
         try {
-            return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, engineVersion, pkcs7, nonce, identity, signature, useInstanceMetadata, responseTimeout, responseTimeoutUnit, followRedirects);
+            return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, pkcs7, nonce, identity, signature, useInstanceMetadata, responseTimeout, responseTimeoutUnit, followRedirects);
         } catch (DefaultMuleException e) {
             throw new ConnectionException(e);
         }

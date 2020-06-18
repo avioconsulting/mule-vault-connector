@@ -1,8 +1,5 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
-
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
-
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
@@ -33,12 +30,11 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
    * @param httpClient     HttpClient to use to make the connection
    * @param engineVersion  The version of the secret engine to use, defaulting to Version 2
    */
-  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, EngineVersion engineVersion, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) {
-    this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, vaultToken, engineVersion.getEngineVersionNumber(), followRedirects);
+  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) {
+    this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, vaultToken, 1, followRedirects);
     this.client = httpClient;
     this.token = vaultToken;
     this.vaultUrl = vaultUrl;
-    this.engineVersion = engineVersion;
     this.responseTimeout = responseTimeout;
     this.responseTimeoutUnit = responseTimeoutUnit;
     this.followRedirects = followRedirects;
