@@ -7,9 +7,9 @@ import com.avioconsulting.mule.connector.vault.provider.internal.configuration.V
 import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
+import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.metadata.fixed.OutputJsonType;
 import org.mule.runtime.extension.api.annotation.param.Config;
@@ -47,9 +47,7 @@ public class VaultOperations {
                                                                 @Connection VaultConnection connection,
                                                                 @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
                                                                 String path)
-                                                        throws VaultAccessException,
-                                                                SecretNotFoundException,
-                                                                UnknownVaultException {
+                                                        throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
     if (overrides.getEngineVersion() != null) {
       logger.info(String.format("Getting secret at path [%s] with engine version [%d]", path, overrides.getEngineVersion().getEngineVersionNumber()));
     } else {
@@ -74,8 +72,7 @@ public class VaultOperations {
                                                                   @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
                                                                   String path,
                                                                   String secret)
-                                                          throws VaultAccessException,
-                                                                  UnknownVaultException {
+                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
     return connection.writeSecret(path, secret, overrides);
   }
 
@@ -98,8 +95,7 @@ public class VaultOperations {
                                                                   String transitMountpoint,
                                                                   String keyName,
                                                                   String plaintext)
-                                                          throws VaultAccessException,
-                                                                  UnknownVaultException {
+                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
     return connection.encryptData(transitMountpoint, keyName, plaintext, overrides);
   }
 
@@ -122,8 +118,7 @@ public class VaultOperations {
                                                                   String transitMountpoint,
                                                                   String keyName,
                                                                   String ciphertext)
-                                                          throws VaultAccessException,
-                                                                  UnknownVaultException {
+                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
     return connection.decryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 
@@ -146,8 +141,7 @@ public class VaultOperations {
                                                                     String transitMountpoint,
                                                                     String keyName,
                                                                     String ciphertext)
-                                                            throws VaultAccessException,
-                                                                    UnknownVaultException {
+                                                            throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
     return connection.reencryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 

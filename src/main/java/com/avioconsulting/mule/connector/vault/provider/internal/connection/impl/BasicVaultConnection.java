@@ -1,16 +1,16 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
+import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import org.mule.runtime.http.api.HttpConstants;
+import com.avioconsulting.mule.vault.api.client.auth.TokenAuthenticator;
+import com.avioconsulting.mule.vault.api.client.exception.AccessException;
+import com.avioconsulting.mule.vault.api.client.exception.VaultException;
+import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.http.api.client.HttpClient;
-import org.mule.runtime.http.api.domain.message.request.HttpRequest;
-import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
-import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,47 +28,23 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
    * @param vaultToken     Token to use for authentication
    * @param vaultUrl       URL for the Vault server (https://host:port)
    * @param httpClient     HttpClient to use to make the connection
-   * @param engineVersion  The version of the secret engine to use, defaulting to Version 2
    */
-  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) {
-    this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, vaultToken, 1, followRedirects);
-    this.client = httpClient;
-    this.token = vaultToken;
-    this.vaultUrl = vaultUrl;
-    this.responseTimeout = responseTimeout;
-    this.responseTimeoutUnit = responseTimeoutUnit;
-    this.followRedirects = followRedirects;
-  }
-
-  @Override
-  public boolean isValid() {
-    boolean valid = false;
-    HttpRequestBuilder builder = HttpRequest.builder();
-    builder.uri(vaultUrl + "/v1/auth/token/lookup" );
-    builder.addHeader("X-Vault-Token", token);
-    builder.method(HttpConstants.Method.GET);
-    logger.info("isValid() " + builder.build().toString());
-    CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
-
+  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws DefaultMuleException {
+    this.config = VaultConfig.builder().
+            authenticator(new TokenAuthenticator(vaultToken)).
+            httpClient(httpClient).
+            baseUrl(vaultUrl).
+            timeout(responseTimeout).
+            timeoutUnit(responseTimeoutUnit).
+            followRedirects(followRedirects).
+            build();
+    this.vault = new VaultClient(this.config);
     try {
-      HttpResponse response = completable.get();
-
-      logger.info("isValid() Response: " + response.getStatusCode() + " " + response.toString());
-      if (response.getStatusCode() == 404) {
-        logger.error("Secret not found in Vault");
-      } else if (response.getStatusCode() == 403) {
-        logger.error("Access denied in Vault");
-      } else if (response.getStatusCode() > 299){
-        logger.error("Unknown Vault Exception");
-      } else {
-        valid = true;
-      }
-    } catch (InterruptedException e) {
-      logger.error("Timeout", e);
-    } catch (ExecutionException e) {
-      logger.error("Execution Exception", e);
+      this.vault.authenticate();
+    } catch (AccessException e) {
+      throw new VaultAccessException(e);
+    } catch (VaultException e) {
+      throw new DefaultMuleException(e);
     }
-
-    return valid;
   }
 }

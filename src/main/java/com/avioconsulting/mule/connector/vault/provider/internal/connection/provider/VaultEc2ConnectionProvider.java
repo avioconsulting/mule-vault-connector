@@ -143,10 +143,14 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public ConnectionValidationResult validate(VaultConnection connection) {
-        if (connection.isValid()) {
-            return ConnectionValidationResult.success();
-        } else {
-            return ConnectionValidationResult.failure("Connection Invalid", null);
+        try {
+            if (connection.isValid()) {
+                return ConnectionValidationResult.success();
+            } else {
+                return ConnectionValidationResult.failure("Connection Invalid", null);
+            }
+        } catch (DefaultMuleException e) {
+            return ConnectionValidationResult.failure("Connection Invalid", e);
         }
     }
 

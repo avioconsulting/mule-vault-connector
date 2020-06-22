@@ -103,19 +103,19 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public void disconnect(VaultConnection connection) {
-        try {
-            connection.invalidate();
-        } catch (Exception e) {
-            logger.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
-        }
+        connection.invalidate();
     }
 
     @Override
     public ConnectionValidationResult validate(VaultConnection connection) {
-        if (connection.isValid()) {
-            return ConnectionValidationResult.success();
-        } else {
-            return ConnectionValidationResult.failure("Connection Invalid", null);
+        try {
+            if (connection.isValid()) {
+                return ConnectionValidationResult.success();
+            } else {
+                return ConnectionValidationResult.failure("Connection Invalid", null);
+            }
+        } catch (DefaultMuleException e) {
+            return ConnectionValidationResult.failure("Connection Invalid", e);
         }
 
     }

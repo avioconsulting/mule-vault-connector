@@ -5,6 +5,7 @@ import com.avioconsulting.mule.connector.vault.provider.internal.connection.Vaul
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
+import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.api.exception.MuleException;
 import org.mule.runtime.api.lifecycle.Initialisable;
 import org.mule.runtime.api.lifecycle.Startable;
@@ -88,26 +89,29 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
 
   @Override
   public VaultConnection connect() throws ConnectionException {
-
-    return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, responseTimeout, responseTimeoutUnit, followRedirects);
-  }
-
-  @Override
-  public void disconnect(VaultConnection connection) {
     try {
-      connection.invalidate();
-    } catch (Exception e) {
-      logger.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
+      return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, responseTimeout, responseTimeoutUnit, followRedirects);
+    } catch (DefaultMuleException e) {
+      throw new ConnectionException(e);
     }
   }
 
   @Override
+  public void disconnect(VaultConnection connection) {
+    connection.invalidate();
+  }
+
+  @Override
   public ConnectionValidationResult validate(VaultConnection connection) {
+    try {
       if (connection.isValid()) {
-          return ConnectionValidationResult.success();
+        return ConnectionValidationResult.success();
       } else {
-          return ConnectionValidationResult.failure("Connection Invalid", null);
+        return ConnectionValidationResult.failure("Connection Invalid", null);
       }
+    } catch (DefaultMuleException e) {
+      return ConnectionValidationResult.failure("Connection Invalid", e);
+    }
 
   }
 
