@@ -14,8 +14,8 @@
     <!--     <vault:config name="Vault_Config_KV3" > -->
     <!--         <vault:basic-connection vaultUrl="http://localhost:8200" engineVersion="v2" vaultToken="devroot" /> -->
     <!--     </vault:config> -->
-    <vault:config name="configV2" >
-        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}" engineVersion="v2">
+    <vault:config name="configV2" engineVersion="v2">
+        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}">
             <tls:context>
                 <tls:trust-store type="jks" path="truststore.jks" password="password"/>
             </tls:context>
@@ -23,7 +23,7 @@
     </vault:config>
 
     <vault:config name="configV1" >
-        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}" engineVersion="v1">
+        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}">
             <tls:context>
                 <tls:trust-store type="jks" path="truststore.jks" password="password" />
             </tls:context>
@@ -42,7 +42,7 @@
 
     <flow name="writeSecretFlow">
         <vault:write-secret config-ref="configV2" path="secret/test/mule-write" secret='{"name":"test"}'/>
-        <vault:get-secret config-ref="configV2" path="secret/test/mule-write" />
+        <vault:get-secret config-ref="configV1" path="secret/test/mule-write" engineVersion="v2"/>
         <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 

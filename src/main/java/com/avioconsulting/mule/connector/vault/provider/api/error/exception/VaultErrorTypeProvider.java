@@ -13,7 +13,6 @@ public class VaultErrorTypeProvider implements ErrorTypeProvider {
 
         errors.add(VaultErrorType.ACCESS_DENIED);
         errors.add(VaultErrorType.SECRET_NOT_FOUND);
-        errors.add(VaultErrorType.UNKNOWN_ERROR);
 
         return errors;
     }

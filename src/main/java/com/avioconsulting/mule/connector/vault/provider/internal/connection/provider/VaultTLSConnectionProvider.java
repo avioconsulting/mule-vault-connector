@@ -4,7 +4,6 @@ import com.avioconsulting.mule.connector.vault.provider.api.error.exception.Vaul
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.TLSVaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.*;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -52,11 +51,6 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
     @Parameter
     private String vaultUrl;
 
-    @DisplayName("Secrets Engine Version")
-    @Parameter
-    @Optional(defaultValue = "v1")
-    private EngineVersion engineVersion;
-
     @Parameter
     private TlsContextFactory tlsContextFactory;
 
@@ -100,11 +94,8 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public VaultConnection connect() throws ConnectionException {
-        if (engineVersion == null) {
-            engineVersion = EngineVersion.v1;
-        }
         try {
-            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, engineVersion, responseTimeout, responseTimeoutUnit, followRedirects);
+            return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, responseTimeout, responseTimeoutUnit, followRedirects);
         } catch (DefaultMuleException | VaultAccessException e) {
             throw new ConnectionException(e);
         }
@@ -112,19 +103,19 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public void disconnect(VaultConnection connection) {
-        try {
-            connection.invalidate();
-        } catch (Exception e) {
-            logger.error("Error while disconnecting [" + connection.getId() + "]: " + e.getMessage(), e);
-        }
+        connection.invalidate();
     }
 
     @Override
     public ConnectionValidationResult validate(VaultConnection connection) {
-        if (connection.isValid()) {
-            return ConnectionValidationResult.success();
-        } else {
-            return ConnectionValidationResult.failure("Connection Invalid", null);
+        try {
+            if (connection.isValid()) {
+                return ConnectionValidationResult.success();
+            } else {
+                return ConnectionValidationResult.failure("Connection Invalid", null);
+            }
+        } catch (DefaultMuleException e) {
+            return ConnectionValidationResult.failure("Connection Invalid", e);
         }
 
     }

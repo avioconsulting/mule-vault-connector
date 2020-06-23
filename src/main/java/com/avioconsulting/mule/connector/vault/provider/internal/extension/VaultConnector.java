@@ -1,6 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.extension;
 
-import com.avioconsulting.mule.connector.vault.provider.api.VaultConfiguration;
+import com.avioconsulting.mule.connector.vault.provider.internal.configuration.VaultConfiguration;
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorType;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultNtlmProxyConfigImpl;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;

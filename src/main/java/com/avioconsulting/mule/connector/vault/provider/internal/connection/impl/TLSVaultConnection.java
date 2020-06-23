@@ -1,24 +1,17 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.parameter.EngineVersion;
+import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.avioconsulting.mule.vault.api.client.VaultConfigBuilder;
+import com.avioconsulting.mule.vault.api.client.auth.TLSAuthenticator;
+import com.avioconsulting.mule.vault.api.client.exception.AccessException;
+import com.avioconsulting.mule.vault.api.client.exception.VaultException;
 import org.mule.runtime.api.exception.DefaultMuleException;
-import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.client.HttpClient;
-import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
-import org.mule.runtime.http.api.domain.message.request.HttpRequest;
-import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
-import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStreamReader;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,80 +23,26 @@ public class TLSVaultConnection extends AbstractVaultConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(TLSVaultConnection.class);
 
-    private final String authMount;
-    private String certificateRole;
-
-    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, EngineVersion engineVersion, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
+    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
         super();
-        this.vConfig = new VaultConfig(httpClient, vaultUrl, responseTimeout, responseTimeoutUnit, null, engineVersion.getEngineVersionNumber(), followRedirects);
-        this.client = httpClient;
-        this.authMount = authMount;
-        this.certificateRole = certRole;
-        this.vaultUrl = vaultUrl;
-        this.responseTimeout = responseTimeout;
-        this.responseTimeoutUnit = responseTimeoutUnit;
-        this.followRedirects = followRedirects;
-        this.engineVersion = engineVersion;
+        VaultConfigBuilder builder = VaultConfig.builder().
+                baseUrl(vaultUrl).
+                authenticator(new TLSAuthenticator(authMount, certRole)).
+                httpClient(httpClient).
+                timeout(responseTimeout).
+                timeoutUnit(responseTimeoutUnit).
+                kvVersion(1).
+                followRedirects(followRedirects);
 
-        this.token = authenticate();
-        this.vConfig.setToken(this.token);
-    }
-
-    @Override
-    public boolean isValid() {
-        if (this.token == null || this.token.isEmpty()) {
-            try {
-                this.token = authenticate();
-            } catch (DefaultMuleException e) {
-                logger.error("Error Authenticating", e);
-            }
-        }
-        return this.token != null && !this.token.isEmpty();
-    }
-
-    private String authenticate() throws VaultAccessException, DefaultMuleException {
-        String token = null;
-        String mount = "cert";
-
-        if (authMount != null && !authMount.isEmpty()) {
-            mount = authMount;
-        }
-
-        HttpRequestBuilder builder = HttpRequest.builder().
-                uri(this.vaultUrl + "/v1/auth/" + mount + "/login").
-                method(HttpConstants.Method.POST);
-
-        if (this.certificateRole != null && !this.certificateRole.isEmpty()) {
-            JsonObject json = new JsonObject();
-            json.addProperty("name", this.certificateRole);
-            builder.entity(new ByteArrayHttpEntity(json.toString().getBytes()));
-        }
-
-
-        CompletableFuture<HttpResponse> completable = client.sendAsync(builder.build(), vConfig.getTimeoutInMilliseconds(), this.followRedirects, null);
-
+        this.config = builder.build();
+        this.vault = new VaultClient(builder.build());
         try {
-            HttpResponse response = completable.get();
-
-            if (response.getStatusCode() == 200) {
-                JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-                JsonElement authData = elem.getAsJsonObject().get("auth");
-                if (authData != null) {
-                    JsonElement clientToken = authData.getAsJsonObject().get("client_token");
-                    token = clientToken.getAsString();
-                }
-            } else if (response.getStatusCode() == 403 || response.getStatusCode() == 404){
-                throw new VaultAccessException(new Exception("Access Error received from Vault: " + response.getStatusCode()));
-            } else {
-                throw new DefaultMuleException(new Exception("Unknown error received from Vault: " + response.getStatusCode()));
-            }
-
-        } catch (InterruptedException | ExecutionException e ) {
-            logger.error("Exception encountered while authenticating", e);
+            this.vault.authenticate();
+        } catch (AccessException e) {
+            throw new VaultAccessException(e);
+        } catch (VaultException e) {
             throw new DefaultMuleException(e);
         }
-
-        return token;
     }
 
 }
