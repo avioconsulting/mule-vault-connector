@@ -4,12 +4,13 @@
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
-    <vault:config name="config" >
+    <vault:config name="config" engineVersion="v2">
         <vault:ec2-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" useInstanceMetadata="false" identity="${identityDoc}" signature="${identitySig}"/>
     </vault:config>
 
     <flow name="getSecretFlow">
         <vault:get-secret config-ref="config" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
 </mule>

@@ -4,7 +4,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 
+import com.avioconsulting.mule.connector.vault.util.SSLUtils;
 import com.avioconsulting.mule.connector.vault.util.VaultContainer;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
@@ -12,21 +14,26 @@ import org.junit.Test;
 import org.junit.Assert;
 
 import java.io.IOException;
+import java.security.*;
+import java.security.cert.CertificateException;
 
-public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
+public class VaultOperationsIT extends MuleArtifactFunctionalTestCase {
 
   @ClassRule
   public static final VaultContainer container = new VaultContainer();
 
   @BeforeClass
-  public static void setupContainer() throws IOException, InterruptedException {
+  public static void setupContainer() throws IOException, InterruptedException, CertificateException,
+          NoSuchAlgorithmException, KeyStoreException, SignatureException, NoSuchProviderException,
+          InvalidKeyException, OperatorCreationException {
     container.initAndUnsealVault();
+    SSLUtils.createClientCertAndKey();
     container.enableKvSecretsV2();
     container.setupSampleSecret();
     container.setupTransitEngine();
     System.setProperty("vaultUrl", container.getAddress());
     System.setProperty("vaultToken", container.getRootToken());
-    System.setProperty("pemFile", VaultContainer.CERT_PEMFILE);
+    System.setProperty("jksFile", VaultContainer.CLIENT_TRUSTSTORE);
     System.setProperty("cipherText", container.getCipherText());
   }
 
@@ -35,7 +42,7 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
    */
   @Override
   protected String getConfigFile() {
-    return "mule_config/test-mule-config.xml";
+    return "mule_config/test-mule-config-it.xml";
   }
 
   @Test
@@ -62,7 +69,7 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
             .getMessage()
             .getPayload()
             .getValue());
-    assertThat(payloadValue,startsWith("vault"));
+    assertThat(payloadValue,startsWith("\"vault"));
   }
 
   @Test
@@ -71,7 +78,7 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
             .getMessage()
             .getPayload()
             .getValue());
-    assertThat(payloadValue,containsString("plaintext"));
+    assertThat(payloadValue,containsString("cGxhaW50ZXh0Cg=="));
   }
 
   @Test
@@ -80,7 +87,7 @@ public class VaultOperationsTestCase extends MuleArtifactFunctionalTestCase {
             .getMessage()
             .getPayload()
             .getValue());
-    assertThat(payloadValue,startsWith("vault"));
+    assertThat(payloadValue,startsWith("\"vault"));
   }
 
   @Test

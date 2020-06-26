@@ -15,7 +15,7 @@ import java.security.cert.CertificateException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 
-public class VaultSSLConnectionTestCase extends MuleArtifactFunctionalTestCase {
+public class VaultSSLConnectionIT extends MuleArtifactFunctionalTestCase {
 
     @ClassRule
     public static final VaultContainer container = new VaultContainer();
@@ -31,9 +31,6 @@ public class VaultSSLConnectionTestCase extends MuleArtifactFunctionalTestCase {
         container.setupBackendCert();
         System.setProperty("vaultUrl", container.getAddress());
         System.setProperty("vaultToken", container.getRootToken());
-        System.setProperty("pemFile", VaultContainer.CERT_PEMFILE);
-        System.setProperty("clientPemFile", VaultContainer.CLIENT_CERT_PEMFILE);
-        System.setProperty("clientKeyPemFile", VaultContainer.CLIENT_PRIVATE_KEY_PEMFILE);
         System.setProperty("keyStoreFile", VaultContainer.CLIENT_KEYSTORE);
         System.setProperty("keyStorePassword", VaultContainer.CLIENT_KEYSTORE_PASSWORD);
         System.setProperty("trustStoreFile", VaultContainer.CLIENT_TRUSTSTORE);
@@ -44,21 +41,12 @@ public class VaultSSLConnectionTestCase extends MuleArtifactFunctionalTestCase {
      */
     @Override
     protected String getConfigFile() {
-        return "mule_config/test-ssl-mule-config.xml";
+        return "mule_config/test-ssl-mule-config-it.xml";
     }
 
     @Test
     public void executeGetSecretWithTrustStore() throws Exception {
         String payloadValue = ((String) flowRunner("getSecretFlowTrustStore").run()
-                .getMessage()
-                .getPayload()
-                .getValue());
-        assertThat(payloadValue,containsString("test_value1") );
-    }
-
-    @Test
-    public void executeGetSecretWithPemFile() throws Exception {
-        String payloadValue = ((String) flowRunner("getSecretFlowPemFile").run()
                 .getMessage()
                 .getPayload()
                 .getValue());
@@ -73,15 +61,5 @@ public class VaultSSLConnectionTestCase extends MuleArtifactFunctionalTestCase {
                 .getValue());
         assertThat(payloadValue,containsString("test_value1") );
     }
-
-    @Test
-    public void executeGetSecretWitPEMConfig() throws Exception {
-        String payloadValue = ((String) flowRunner("getSecretFlowPemConfig").run()
-                .getMessage()
-                .getPayload()
-                .getValue());
-        assertThat(payloadValue,containsString("test_value1"));
-    }
-
 
 }

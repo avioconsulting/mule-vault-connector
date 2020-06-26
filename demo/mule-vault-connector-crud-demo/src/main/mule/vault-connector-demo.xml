@@ -37,11 +37,20 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</flow>
 	<flow name="encrypt-data-flow" doc:id="26b52210-cdab-46d7-90c0-7c4e1f566b8a" >
 		<http:listener doc:name="Listener" doc:id="91339bf7-4498-443b-b5da-7c07c007ce9e" config-ref="HTTP_Listener" path="encrypt" allowedMethods="POST" outputMimeType="application/json"/>
-		<vault:encrypt-data doc:name="Encrypt data" doc:id="d0b7d636-af3a-4012-b0e1-d306375336b0" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" plaintext="#[payload.plaintext]"/>
+		<set-payload value='#[import toBase64 from dw::core::Binaries
+output text/plain
+---
+toBase64(payload.plaintext as Binary)]' doc:name="Base64 Encode Payload" doc:id="2c7f053a-4edb-4d3c-ad3a-5e1278490899" />
+		<vault:encrypt-data doc:name="Encrypt data" doc:id="d0b7d636-af3a-4012-b0e1-d306375336b0" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" plaintext="#[payload]" doc:description="The input to Encrypt Data must be Base64 encoded"/>
 	</flow>
 	<flow name="decrypt-data-flow" doc:id="b28b0914-a941-4db0-9d13-31989dc66dfd" >
 		<http:listener doc:name="Listener" doc:id="b71f3a11-b286-4010-94ea-c98c897aca0d" config-ref="HTTP_Listener" path="decrypt" allowedMethods="POST" outputMimeType="application/json"/>
-		<vault:decrypt-data doc:name="Decrypt data" doc:id="e7294662-282b-4366-8d73-03a6617d63dc" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" ciphertext="#[payload.ciphertext]"/>
+		<vault:decrypt-data doc:name="Decrypt data" doc:id="e7294662-282b-4366-8d73-03a6617d63dc" config-ref="Vault_Config_Transit" transitMountpoint="transit" keyName="demo-key" ciphertext="#[payload.ciphertext]" doc:description="The output from Decrypt data is Base64 encoded"/>
+		<set-payload value="#[%dw 2.0
+import fromBase64 from dw::core::Binaries
+output text/plain
+---
+fromBase64(payload as String) as String]" doc:name="Base64 Decode Payload" doc:id="8360fac8-bdd7-4d7a-8e41-4e2d157ba698" />
 	</flow>
 	<flow name="reencrypt-data-flow" doc:id="64061d91-fd7f-43bb-9507-888f118379cc" >
 		<http:listener doc:name="Listener" doc:id="f8db4217-a549-4225-a184-a165936b63c6" config-ref="HTTP_Listener" path="reencrypt" allowedMethods="POST" outputMimeType="application/json"/>

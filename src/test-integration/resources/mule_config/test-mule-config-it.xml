@@ -1,0 +1,61 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+    <vault:config name="configV2" engineVersion="v2">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
+            <tls:context>
+                <tls:trust-store type="jks" path="${jksFile}" password="password"/>
+            </tls:context>
+        </vault:basic-connection>
+    </vault:config>
+
+    <vault:config name="configV1" >
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}">
+            <tls:context>
+                <tls:trust-store type="jks" path="${jksFile}" password="password"/>
+            </tls:context>
+        </vault:basic-connection>
+    </vault:config>
+
+    <flow name="getSecretFlow">
+        <vault:get-secret config-ref="configV2" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="missingFlow">
+        <vault:get-secret config-ref="configV2" path="secret/does/not/exist"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="writeSecretFlow">
+        <vault:write-secret config-ref="configV2" path="secret/test/mule-write" secret='{"data": {"name":"test"}}'/>
+        <vault:get-secret config-ref="configV2" path="secret/test/mule-write" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="encryptDataFlow">
+        <set-payload value='#[import toBase64 from dw::core::Binaries
+output text/plain
+---
+toBase64("plaintext" as Binary)]' />
+        <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="#[payload]" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="decryptDataFlow">
+        <vault:decrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="${cipherText}" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="reEncryptFlow">
+        <vault:reencrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="${cipherText}" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+
+</mule>
