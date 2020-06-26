@@ -17,8 +17,12 @@
     </parent>
 
     <properties>
+        <muleMetadataVersion>1.1.2</muleMetadataVersion>
+        <muleServicesVersion>1.1.2</muleServicesVersion>
         <mockServerVersion>5.10.0</mockServerVersion>
         <gsonVersion>2.8.6</gsonVersion>
+        <testContainersVersion>1.14.3</testContainersVersion>
+        <bouncyCastleVersion>1.60</bouncyCastleVersion>
     </properties>
 
     <build>
@@ -103,20 +107,20 @@
         <dependency>
             <groupId>org.mule.runtime</groupId>
             <artifactId>mule-metadata-model-json</artifactId>
-            <version>1.1.1</version>
+            <version>${muleMetadataVersion}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mule.services</groupId>
             <artifactId>mule-service-http</artifactId>
-            <version>1.1.1</version>
+            <version>${muleServicesVersion}</version>
             <classifier>mule-service</classifier>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mule.services</groupId>
             <artifactId>mule-service-scheduler</artifactId>
-            <version>1.1.2</version>
+            <version>${muleServicesVersion}</version>
             <classifier>mule-service</classifier>
             <scope>provided</scope>
         </dependency>
@@ -132,19 +136,19 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.14.3</version>
+            <version>${testContainersVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.60</version>
+            <version>${bouncyCastleVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.60</version>
+            <version>${bouncyCastleVersion}</version>
             <scope>test</scope>
         </dependency>
 
