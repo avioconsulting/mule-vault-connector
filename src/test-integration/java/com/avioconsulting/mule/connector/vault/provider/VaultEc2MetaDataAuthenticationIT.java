@@ -9,7 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assume.assumeTrue;
 
-public class VaultIamAuthTestCase extends MuleArtifactFunctionalTestCase {
+public class VaultEc2MetaDataAuthenticationIT extends MuleArtifactFunctionalTestCase {
 
     @BeforeClass
     public static void runCheckBeforeTest() {
@@ -18,7 +18,7 @@ public class VaultIamAuthTestCase extends MuleArtifactFunctionalTestCase {
 
     @Override
     protected String getConfigFile() {
-        return "mule_config/test-mule-ec2-metadata-auth-config.xml";
+        return "mule_config/test-mule-ec2-metadata-auth-config-it.xml";
     }
 
     @Test

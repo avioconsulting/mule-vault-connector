@@ -1,0 +1,39 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+
+    <vault:config name="basicTrustStoreConfig" engineVersion="v2">
+        <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
+            <tls:context>
+                <tls:trust-store type="jks" path="${trustStoreFile}" password="password"/>
+            </tls:context>
+        </vault:basic-connection>
+    </vault:config>
+
+    <vault:config name="jksConfig" engineVersion="v2">
+        <vault:tls-connection vaultUrl="${vaultUrl}" >
+            <tls:context>
+                <tls:trust-store type="jks" path="${jksFile}" password="password"/>
+                <tls:key-store type="jks" path="${keyStoreFile}" keyPassword="${keyStorePassword}" password="${keyStorePassword}" />
+            </tls:context>
+        </vault:tls-connection>
+    </vault:config>
+
+
+    <flow name="getSecretFlowTrustStore">
+        <vault:get-secret config-ref="basicTrustStoreConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="getSecretFlowJksConfig">
+        <vault:get-secret config-ref="jksConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+
+</mule>
