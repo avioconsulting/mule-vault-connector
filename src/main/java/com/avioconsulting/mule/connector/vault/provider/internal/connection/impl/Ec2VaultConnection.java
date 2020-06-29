@@ -36,7 +36,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(Ec2VaultConnection.class);
 
-    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws DefaultMuleException {
+    public Ec2VaultConnection(String vaultUrl, String authMount, String awsRole, HttpClient httpClient, String pkcs7, String nonce, String identity, String signature, boolean useInstanceMetadata, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws DefaultMuleException, InterruptedException {
         VaultConfigBuilder builder = VaultConfig.builder().
                 baseUrl(vaultUrl).
                 authenticator(new AWSEC2Authenticator(authMount, awsRole, pkcs7, nonce, identity, signature, useInstanceMetadata)).
@@ -50,6 +50,7 @@ public class Ec2VaultConnection extends AbstractVaultConnection {
         this.vault = new VaultClient(builder.build());
         try {
             this.vault.authenticate();
+            this.validConnection = true;
         } catch (AccessException e) {
             throw new VaultAccessException(e);
         } catch (VaultException e) {

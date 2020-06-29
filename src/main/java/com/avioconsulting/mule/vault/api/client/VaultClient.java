@@ -44,20 +44,20 @@ public class VaultClient {
         return token;
     }
 
-    public void authenticate() throws AccessException, VaultException {
+    public void authenticate() throws AccessException, VaultException, InterruptedException {
         this.token = config.getAuthenticator().authenticate(config);
     }
 
-    public boolean validateToken() throws VaultException {
-        boolean valid = false;
-        HttpRequestBuilder builder = HttpRequest.builder();
-        builder.uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/token/lookup" );
-        builder.addHeader("X-Vault-Token", token);
-        builder.method(HttpConstants.Method.GET);
-        logger.info("isValid() " + builder.build().toString());
-        CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
-
+    public boolean validateToken() throws VaultException, InterruptedException {
         try {
+            boolean valid = false;
+            HttpRequestBuilder builder = HttpRequest.builder();
+            builder.uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/token/lookup");
+            builder.addHeader("X-Vault-Token", token);
+            builder.method(HttpConstants.Method.GET);
+            logger.info("isValid() " + builder.build().toString());
+            CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
+
             HttpResponse response = completable.get();
 
             logger.info("isValid() Response: " + response.getStatusCode() + " " + response.toString());
@@ -65,19 +65,19 @@ public class VaultClient {
                 logger.error("Secret not found in Vault");
             } else if (response.getStatusCode() == 403) {
                 logger.error("Access denied in Vault");
-            } else if (response.getStatusCode() > 299){
+            } else if (response.getStatusCode() > 299) {
                 logger.error("Unknown Vault Exception");
             } else {
                 valid = true;
             }
-        } catch (InterruptedException | ExecutionException e) {
+
+            return valid;
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
-
-        return valid;
     }
 
-    public Result<InputStream, VaultResponseAttributes> getSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
@@ -92,12 +92,12 @@ public class VaultClient {
                     output(new ByteArrayInputStream(responseData.toString().getBytes())).
                     length(responseData.toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
 
-    public Result<InputStream, VaultResponseAttributes> writeSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
@@ -113,13 +113,14 @@ public class VaultClient {
                     output(new ByteArrayInputStream(responseData.toString().getBytes())).
                     length(responseData.toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
+
+
     }
 
-    public Result<InputStream, VaultResponseAttributes> encryptData(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
@@ -135,12 +136,12 @@ public class VaultClient {
                     output(new ByteArrayInputStream(responseData.get("ciphertext").toString().getBytes())).
                     length(responseData.get("ciphertext").toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
 
-    public Result<InputStream, VaultResponseAttributes> decryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
@@ -163,13 +164,12 @@ public class VaultClient {
                     output(new ByteArrayInputStream(encodedText.getBytes())).
                     length(encodedText.length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
 
-    public Result<InputStream, VaultResponseAttributes> reencryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
@@ -186,7 +186,7 @@ public class VaultClient {
                     output(new ByteArrayInputStream(reencryptedText.getBytes())).
                     length(reencryptedText.length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }

@@ -24,7 +24,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
     private static final Logger logger = LoggerFactory.getLogger(IamVaultConnection.class);
 
     public IamVaultConnection(String vaultUrl, String authMount, String role, HttpClient httpClient, String iamRequestUrl,
-                              String iamRequestBody, String iamRequestHeaders, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws VaultAccessException, DefaultMuleException {
+                              String iamRequestBody, String iamRequestHeaders, Integer responseTimeout, TimeUnit responseTimeoutUnit, boolean followRedirects) throws VaultAccessException, DefaultMuleException, InterruptedException {
         super();
         VaultConfigBuilder builder = VaultConfig.builder().
                 baseUrl(vaultUrl).
@@ -38,6 +38,7 @@ public class IamVaultConnection extends AbstractVaultConnection {
         this.vault = new VaultClient(builder.build());
         try {
             this.vault.authenticate();
+            this.validConnection = true;
         } catch (AccessException e) {
             throw new VaultAccessException(e);
         } catch (VaultException e) {

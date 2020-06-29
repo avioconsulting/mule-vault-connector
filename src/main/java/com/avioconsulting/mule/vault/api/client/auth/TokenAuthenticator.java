@@ -13,7 +13,7 @@ public class TokenAuthenticator implements VaultAuthenticator {
     }
 
     @Override
-    public String authenticate(VaultConfig config) throws AccessException, VaultException {
+    public String authenticate(VaultConfig config) throws VaultException {
         if (token != null) {
             return token;
         } else{

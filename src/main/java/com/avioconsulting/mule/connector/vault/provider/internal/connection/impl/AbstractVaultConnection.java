@@ -31,6 +31,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     VaultClient vault;
     VaultConfig config;
 
+    boolean validConnection;
+
     public AbstractVaultConnection() {
         this.config = new VaultConfig();
     };
@@ -41,24 +43,17 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public void invalidate() {
+        this.vault.invalidate();
+        this.validConnection = false;
     }
 
     @Override
-    public boolean isValid() throws VaultAccessException, DefaultMuleException {
-        try {
-            if (vault.getToken() == null || vault.getToken().isEmpty()) {
-                vault.authenticate();
-            }
-            return vault.validateToken();
-        } catch (AccessException e) {
-            throw new VaultAccessException(e);
-        } catch (VaultException e) {
-            throw new DefaultMuleException(e);
-        }
+    public boolean isValid() {
+        return validConnection;
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -78,7 +73,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -99,7 +94,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -121,7 +116,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -142,7 +137,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).

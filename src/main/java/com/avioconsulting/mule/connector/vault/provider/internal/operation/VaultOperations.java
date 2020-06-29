@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 
-
 /**
  * @author Adam Mead
  *
@@ -47,7 +46,7 @@ public class VaultOperations {
                                                                 @Connection VaultConnection connection,
                                                                 @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
                                                                 String path)
-                                                        throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
     if (overrides.getEngineVersion() != null) {
       logger.info(String.format("Getting secret at path [%s] with engine version [%d]", path, overrides.getEngineVersion().getEngineVersionNumber()));
     } else {
@@ -72,7 +71,7 @@ public class VaultOperations {
                                                                   @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
                                                                   String path,
                                                                   String secret)
-                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
     return connection.writeSecret(path, secret, overrides);
   }
 
@@ -95,7 +94,7 @@ public class VaultOperations {
                                                                   String transitMountpoint,
                                                                   String keyName,
                                                                   String plaintext)
-                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
     return connection.encryptData(transitMountpoint, keyName, plaintext, overrides);
   }
 
@@ -118,7 +117,7 @@ public class VaultOperations {
                                                                   String transitMountpoint,
                                                                   String keyName,
                                                                   String ciphertext)
-                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
     return connection.decryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 
@@ -141,7 +140,7 @@ public class VaultOperations {
                                                                     String transitMountpoint,
                                                                     String keyName,
                                                                     String ciphertext)
-                                                            throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
     return connection.reencryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 

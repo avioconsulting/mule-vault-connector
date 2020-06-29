@@ -48,7 +48,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
     }
 
     @Override
-    public String authenticate(VaultConfig config) throws AccessException, VaultException {
+    public String authenticate(VaultConfig config) throws AccessException, VaultException, InterruptedException {
         String token = null;
         String mount = "aws";
 
@@ -97,6 +97,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
 
         CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
 
+
         try {
             HttpResponse response = completable.get();
 
@@ -118,7 +119,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
                     throw new VaultException(response.getStatusCode(), message);
                 }
             }
-        } catch (InterruptedException | ExecutionException e ) {
+        } catch (ExecutionException e ) {
             logger.error("Exception encountered while authenticating", e);
             throw new VaultException(e);
         }

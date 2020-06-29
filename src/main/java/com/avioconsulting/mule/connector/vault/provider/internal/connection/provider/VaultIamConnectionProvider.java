@@ -110,7 +110,7 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     public VaultConnection connect() throws ConnectionException {
         try {
             return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, iamRequestUrl, iamRequestBody, iamRequestHeaders, responseTimeout, responseTimeoutUnit, followRedirects);
-        } catch (VaultAccessException | DefaultMuleException e) {
+        } catch (InterruptedException | VaultAccessException | DefaultMuleException e) {
             throw new ConnectionException(e);
         }
 
@@ -123,14 +123,10 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public ConnectionValidationResult validate(VaultConnection connection) {
-        try {
-            if (connection.isValid()) {
-                return ConnectionValidationResult.success();
-            } else {
-                return ConnectionValidationResult.failure("Connection Invalid", null);
-            }
-        } catch (DefaultMuleException e) {
-            return ConnectionValidationResult.failure("Connection Invalid", e);
+        if (connection.isValid()) {
+            return ConnectionValidationResult.success();
+        } else {
+            return ConnectionValidationResult.failure("Connection Invalid", null);
         }
     }
 

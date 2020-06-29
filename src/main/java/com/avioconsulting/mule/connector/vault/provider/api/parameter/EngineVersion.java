@@ -4,8 +4,8 @@ package com.avioconsulting.mule.connector.vault.provider.api.parameter;
  * Enumeration of the acceptable secrets engine versions
  */
 public enum EngineVersion {
-    v1 (1),
-    v2 (2)
+    V1 (1),
+    V2 (2)
     ;
 
     private final Integer engineVersion;

@@ -39,7 +39,7 @@ public class AWSIAMAuthenticator implements VaultAuthenticator {
     }
 
     @Override
-    public String authenticate(VaultConfig config) throws AccessException, VaultException {
+    public String authenticate(VaultConfig config) throws AccessException, VaultException, InterruptedException {
         String token = null;
         String mount = "aws";
 
@@ -94,7 +94,7 @@ public class AWSIAMAuthenticator implements VaultAuthenticator {
                 }
             }
 
-        } catch (InterruptedException | ExecutionException e ) {
+        } catch (ExecutionException e ) {
             logger.error("Exception encountered while authenticating", e);
             throw new VaultException(e);
         }

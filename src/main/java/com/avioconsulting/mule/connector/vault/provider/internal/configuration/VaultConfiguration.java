@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class VaultConfiguration {
     @DisplayName("Secrets Engine Version")
     @Parameter
-    @Optional(defaultValue = "v1")
+    @Optional(defaultValue = "V1")
     private EngineVersion engineVersion;
 
     @DisplayName("Include Vault Request Header")

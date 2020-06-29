@@ -96,7 +96,7 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
     public VaultConnection connect() throws ConnectionException {
         try {
             return new TLSVaultConnection(vaultUrl, mount, certificateRole, httpClient, responseTimeout, responseTimeoutUnit, followRedirects);
-        } catch (DefaultMuleException | VaultAccessException e) {
+        } catch (InterruptedException | DefaultMuleException | VaultAccessException e) {
             throw new ConnectionException(e);
         }
     }
@@ -108,16 +108,11 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public ConnectionValidationResult validate(VaultConnection connection) {
-        try {
-            if (connection.isValid()) {
-                return ConnectionValidationResult.success();
-            } else {
-                return ConnectionValidationResult.failure("Connection Invalid", null);
-            }
-        } catch (DefaultMuleException e) {
-            return ConnectionValidationResult.failure("Connection Invalid", e);
+        if (connection.isValid()) {
+            return ConnectionValidationResult.success();
+        } else {
+            return ConnectionValidationResult.failure("Connection Invalid", null);
         }
-
     }
 
     @Override

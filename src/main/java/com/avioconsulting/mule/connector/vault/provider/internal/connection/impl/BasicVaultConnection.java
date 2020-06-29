@@ -29,7 +29,7 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
    * @param vaultUrl       URL for the Vault server (https://host:port)
    * @param httpClient     HttpClient to use to make the connection
    */
-  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws DefaultMuleException {
+  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws DefaultMuleException, InterruptedException {
     this.config = VaultConfig.builder().
             authenticator(new TokenAuthenticator(vaultToken)).
             httpClient(httpClient).
@@ -39,8 +39,10 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
             followRedirects(followRedirects).
             build();
     this.vault = new VaultClient(this.config);
+
     try {
       this.vault.authenticate();
+      this.validConnection = true;
     } catch (AccessException e) {
       throw new VaultAccessException(e);
     } catch (VaultException e) {

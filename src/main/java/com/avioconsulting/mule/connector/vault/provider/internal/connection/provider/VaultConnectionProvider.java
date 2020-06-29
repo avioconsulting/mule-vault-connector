@@ -91,7 +91,7 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
   public VaultConnection connect() throws ConnectionException {
     try {
       return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, responseTimeout, responseTimeoutUnit, followRedirects);
-    } catch (DefaultMuleException e) {
+    } catch (InterruptedException | DefaultMuleException e) {
       throw new ConnectionException(e);
     }
   }
@@ -103,14 +103,10 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
 
   @Override
   public ConnectionValidationResult validate(VaultConnection connection) {
-    try {
-      if (connection.isValid()) {
-        return ConnectionValidationResult.success();
-      } else {
-        return ConnectionValidationResult.failure("Connection Invalid", null);
-      }
-    } catch (DefaultMuleException e) {
-      return ConnectionValidationResult.failure("Connection Invalid", e);
+    if (connection.isValid()) {
+      return ConnectionValidationResult.success();
+    } else {
+      return ConnectionValidationResult.failure("Connection Invalid", null);
     }
 
   }

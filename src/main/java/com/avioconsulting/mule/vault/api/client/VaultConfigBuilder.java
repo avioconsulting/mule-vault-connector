@@ -11,7 +11,6 @@ public class VaultConfigBuilder {
     private String baseUrl;
     private Integer timeout;
     private TimeUnit timeoutUnit;
-    private String token;
     private Integer kvVersion = 1;
     private boolean followRedirects = false;
     private String namespace;
@@ -20,7 +19,7 @@ public class VaultConfigBuilder {
     public VaultConfigBuilder() {super();}
 
     public VaultConfig build() {
-        return new VaultConfig(httpClient, authenticator, baseUrl, timeout, timeoutUnit, token, kvVersion, followRedirects, namespace, includeVaultRequestHeader);
+        return new VaultConfig(httpClient, authenticator, baseUrl, timeout, timeoutUnit, kvVersion, followRedirects, namespace, includeVaultRequestHeader);
     }
 
     public VaultConfigBuilder httpClient(HttpClient httpClient) {
@@ -45,11 +44,6 @@ public class VaultConfigBuilder {
 
     public VaultConfigBuilder timeoutUnit(TimeUnit timeoutUnit) {
         this.timeoutUnit = timeoutUnit;
-        return this;
-    }
-
-    public VaultConfigBuilder token(String token) {
-        this.token = token;
         return this;
     }
 

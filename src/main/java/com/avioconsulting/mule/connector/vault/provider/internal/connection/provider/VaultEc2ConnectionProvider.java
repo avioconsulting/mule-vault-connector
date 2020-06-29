@@ -131,7 +131,7 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     public VaultConnection connect() throws ConnectionException {
         try {
             return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, pkcs7, nonce, identity, signature, useInstanceMetadata, responseTimeout, responseTimeoutUnit, followRedirects);
-        } catch (DefaultMuleException e) {
+        } catch (InterruptedException | DefaultMuleException e) {
             throw new ConnectionException(e);
         }
     }
@@ -143,14 +143,10 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
 
     @Override
     public ConnectionValidationResult validate(VaultConnection connection) {
-        try {
-            if (connection.isValid()) {
-                return ConnectionValidationResult.success();
-            } else {
-                return ConnectionValidationResult.failure("Connection Invalid", null);
-            }
-        } catch (DefaultMuleException e) {
-            return ConnectionValidationResult.failure("Connection Invalid", e);
+        if (connection.isValid()) {
+            return ConnectionValidationResult.success();
+        } else {
+            return ConnectionValidationResult.failure("Connection Invalid", null);
         }
     }
 

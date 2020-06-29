@@ -31,7 +31,7 @@ public class TLSAuthenticator implements VaultAuthenticator {
         this.certificateRole = certificateRole;
     }
 
-    public String authenticate(VaultConfig config) throws AccessException, VaultException {
+    public String authenticate(VaultConfig config) throws AccessException, VaultException, InterruptedException {
         String token = null;
         String mount = "cert";
 
@@ -81,7 +81,7 @@ public class TLSAuthenticator implements VaultAuthenticator {
                 }
             }
 
-        } catch (InterruptedException | ExecutionException e ) {
+        } catch (ExecutionException e ) {
             logger.error("Exception encountered while authenticating", e);
             throw new VaultException(e);
         }

@@ -23,7 +23,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
 
     private static final Logger logger = LoggerFactory.getLogger(TLSVaultConnection.class);
 
-    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException{
+    public TLSVaultConnection(String vaultUrl, String authMount, String certRole, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws VaultAccessException, DefaultMuleException, InterruptedException {
         super();
         VaultConfigBuilder builder = VaultConfig.builder().
                 baseUrl(vaultUrl).
@@ -38,6 +38,7 @@ public class TLSVaultConnection extends AbstractVaultConnection {
         this.vault = new VaultClient(builder.build());
         try {
             this.vault.authenticate();
+            this.validConnection = true;
         } catch (AccessException e) {
             throw new VaultAccessException(e);
         } catch (VaultException e) {

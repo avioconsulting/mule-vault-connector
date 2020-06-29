@@ -8,6 +8,7 @@ import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 
 import java.io.InputStream;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Vault Connection Interface used for all Vault Connections
@@ -18,15 +19,15 @@ public interface VaultConnection {
 
     void invalidate();
 
-    boolean isValid() throws DefaultMuleException;
+    boolean isValid();
 
-    Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException;
+    Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException;
 
-    Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException;
+    Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException;
 
-    Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException;
+    Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException;
 
-    Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException;
+    Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException;
 
-    Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException;
+    Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException;
 }
