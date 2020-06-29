@@ -1,7 +1,7 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.operation;
 
 import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.provider.VaultErrorTypeProvider;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.VaultConfiguration;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;

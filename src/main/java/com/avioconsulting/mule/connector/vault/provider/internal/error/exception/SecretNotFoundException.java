@@ -1,5 +1,6 @@
-package com.avioconsulting.mule.connector.vault.provider.api.error.exception;
+package com.avioconsulting.mule.connector.vault.provider.internal.error.exception;
 
+import com.avioconsulting.mule.connector.vault.provider.internal.error.VaultErrorType;
 import org.mule.runtime.extension.api.exception.ModuleException;
 
 public class SecretNotFoundException extends ModuleException {

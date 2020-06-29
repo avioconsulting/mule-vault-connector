@@ -1,6 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.VaultAccessException;
 import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import com.avioconsulting.mule.vault.api.client.exception.AccessException;
@@ -35,10 +35,8 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
       this.validConnection = true;
       logger.info("Authentication successful");
     } catch (AccessException e) {
-      logger.error("Authentication failed", e);
       throw new VaultAccessException(e);
     } catch (VaultException e) {
-      logger.error("Authentication failed", e);
       throw new DefaultMuleException(e);
     }
   }

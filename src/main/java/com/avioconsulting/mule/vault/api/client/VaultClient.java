@@ -11,7 +11,6 @@ import org.mule.runtime.api.metadata.MediaType;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
-import org.mule.runtime.http.api.domain.message.request.HttpRequest;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;

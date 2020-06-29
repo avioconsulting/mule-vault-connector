@@ -1,8 +1,8 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.SecretNotFoundException;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.vault.api.client.VaultClient;
