@@ -46,7 +46,7 @@ public class VaultOperations {
                                                                 String path)
           throws DefaultMuleException, InterruptedException {
     if (overrides.getEngineVersion() != null) {
-      logger.info(String.format("Getting secret at path [%s] with engine version [%d]", path, overrides.getEngineVersion().getEngineVersionNumber()));
+      logger.info("Getting secret at path [{}}] with engine version [{}}]", path, overrides.getEngineVersion().getEngineVersionNumber());
     } else {
       logger.info("Engine Version is null!");
     }

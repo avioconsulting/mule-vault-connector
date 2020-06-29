@@ -48,34 +48,6 @@ public class VaultClient {
         this.token = config.getAuthenticator().authenticate(config);
     }
 
-    public boolean validateToken() throws VaultException, InterruptedException {
-        try {
-            boolean valid = false;
-            HttpRequestBuilder builder = HttpRequest.builder();
-            builder.uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/token/lookup");
-            builder.addHeader("X-Vault-Token", token);
-            builder.method(HttpConstants.Method.GET);
-            CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
-
-            HttpResponse response = completable.get();
-
-            logger.info("isValid() Response: {} {}", response.getStatusCode(), response.toString());
-            if (response.getStatusCode() == 404) {
-                logger.error("Secret not found in Vault");
-            } else if (response.getStatusCode() == 403) {
-                logger.error("Access denied in Vault");
-            } else if (response.getStatusCode() > 299) {
-                logger.error("Unknown Vault Exception");
-            } else {
-                valid = true;
-            }
-
-            return valid;
-        } catch (ExecutionException e) {
-            throw new VaultException(e);
-        }
-    }
-
     public Result<InputStream, VaultResponseAttributes> getSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().

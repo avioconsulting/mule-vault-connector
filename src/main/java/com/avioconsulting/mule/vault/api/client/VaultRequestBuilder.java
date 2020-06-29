@@ -65,6 +65,9 @@ public class VaultRequestBuilder {
 
     public VaultRequestBuilder config(VaultConfig config) {
         this.config = config;
+        this.timeout = config.getTimeout();
+        this.timeoutUnit = config.getTimeoutUnit();
+        this.kvVersion = config.getKvVersion();
         return this.uri(config.getBaseUrl()).kvVersion(config.getKvVersion());
     }
 

@@ -35,6 +35,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     boolean validConnection;
 
     public AbstractVaultConnection(VaultConfig config) {
+        super();
         this.config = config;
     }
 
@@ -47,13 +48,13 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public boolean isValid() {
-        logger.info(String.format("isValid(): %b", validConnection));
+        logger.info("isValid(): {}", validConnection);
         return validConnection;
     }
 
     @Override
     public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
-        logger.info(String.format("Getting secret from path (%s)", path));
+        logger.info("Getting secret from path ({})", path);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -74,7 +75,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
-        logger.info(String.format("Writing string to path (%s)", path));
+        logger.info("Writing string to path ({})", path);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -96,7 +97,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
-        logger.info(String.format("Encrypting data with mount point (%s) and key (%s)", transitMountpoint, keyName));
+        logger.info("Encrypting data with mount point ({}) and key ({})", transitMountpoint, keyName);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -119,7 +120,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
-        logger.info(String.format("Decrypting data with mount point (%s) and key (%s)", transitMountpoint, keyName));
+        logger.info("Decrypting data with mount point ({}) and key ({})", transitMountpoint, keyName);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -141,7 +142,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     @Override
     public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
-        logger.info(String.format("Re-encrypting data with mount point (%s) and key (%s)", transitMountpoint, keyName));
+        logger.info("Re-encrypting data with mount point ({}}) and key ({})", transitMountpoint, keyName);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).

@@ -6,4 +6,7 @@ import com.avioconsulting.mule.vault.api.client.exception.VaultException;
 
 public interface VaultAuthenticator {
     String authenticate(VaultConfig config) throws AccessException, VaultException, InterruptedException;
+
+    String getAuthPath();
+    String getAuthPayload(VaultConfig config) throws VaultException;
 }
