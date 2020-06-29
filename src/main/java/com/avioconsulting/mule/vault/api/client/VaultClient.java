@@ -83,6 +83,8 @@ public class VaultClient {
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.GET);
 
+            logger.info(String.format("Getting secret from %s", builder.getUri()));
+
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
 
             HttpResponse response = completable.get();
@@ -103,6 +105,8 @@ public class VaultClient {
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
+
+            logger.info(String.format("Writing secret to %s", builder.getUri()));
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -127,14 +131,16 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
+            logger.info(String.format("Encrypting data via %s", builder.getUri()));
+
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
 
             JsonObject responseData = handleResponse(response);
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
             return responseBuilder.attributes(new VaultResponseAttributes(response)).
-                    output(new ByteArrayInputStream(responseData.get("ciphertext").toString().getBytes())).
-                    length(responseData.get("ciphertext").toString().length()).
+                    output(new ByteArrayInputStream(responseData.get(VaultConstants.CIPHERTEXT_ATTRIBUTE).toString().getBytes())).
+                    length(responseData.get(VaultConstants.CIPHERTEXT_ATTRIBUTE).toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
         } catch (ExecutionException e) {
             throw new VaultException(e);
@@ -148,7 +154,7 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
-            logger.info("URI: " + builder.getUri());
+            logger.info(String.format("Decrypting data via %s", builder.getUri()));
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -156,7 +162,7 @@ public class VaultClient {
             JsonObject responseObject = handleResponse(response);
 
             logger.info("decrypt() returned: " + response.toString());
-            String encodedText = responseObject.get("plaintext").toString();
+            String encodedText = responseObject.get(VaultConstants.PLAINTEXT_ATTRIBUTE).toString();
             logger.info("decrypt() plaintext: " + encodedText);
 
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
@@ -176,11 +182,13 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
+            logger.info(String.format("Re-encrypting data via %s", builder.getUri()));
+
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
 
             JsonObject responseData = handleResponse(response);
-            String reencryptedText = responseData.get("ciphertext").toString();
+            String reencryptedText = responseData.get(VaultConstants.CIPHERTEXT_ATTRIBUTE).toString();
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
             return responseBuilder.attributes(new VaultResponseAttributes(response)).
                     output(new ByteArrayInputStream(reencryptedText.getBytes())).
@@ -195,12 +203,15 @@ public class VaultClient {
         if (response.getStatusCode() == 200 && response.getEntity() != null) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
             JsonObject jsonObject = elem.getAsJsonObject();
-            return jsonObject.getAsJsonObject("data");
+            logger.info("Received successful response (data omitted for security)");
+            return jsonObject.getAsJsonObject(VaultConstants.DATA_ATTRIBUTE);
         } else if (response.getStatusCode() == 201) {
+            logger.info("Received successful response. No data included.");
             return new JsonObject();
         } else if (response.getStatusCode() >= 400) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
             String message = elem != null ? elem.toString() : "";
+            logger.error(String.format("Received error response. Status code (%d). Message: %s", response.getStatusCode(), message));
             if (response.getStatusCode() == 403) {
                 throw new AccessException(message);
             } else if (response.getStatusCode() == 404) {

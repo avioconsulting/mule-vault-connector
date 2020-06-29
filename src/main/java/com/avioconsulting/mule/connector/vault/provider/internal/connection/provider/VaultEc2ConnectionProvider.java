@@ -2,7 +2,9 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.Ec2VaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
+import com.avioconsulting.mule.vault.api.client.VaultConfig;
+import com.avioconsulting.mule.vault.api.client.auth.AWSEC2Authenticator;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -30,7 +32,7 @@ import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class provides {@link Ec2VaultConnection} instances and the functionality to disconnect and validate those
+ * This class provides {@link BasicVaultConnection} instances and the functionality to disconnect and validate those
  * connections. This is a {@link PoolingConnectionProvider} which will pool and reuse connections.
  */
 @DisplayName("EC2 Connection")
@@ -121,16 +123,26 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     private VaultProxyConfig proxyConfig;
 
     /**
-     * Constructs an {@link Ec2VaultConnection}. When useInstanceMetadata is true, the PKCS7 value is looked up from
+     * Constructs an {@link VaultConnection}. When useInstanceMetadata is true, the PKCS7 value is looked up from
      * the AWS Metadata Service
      *
-     * @return an {@link Ec2VaultConnection}
+     * @return an {@link VaultConnection}
      * @throws ConnectionException
      */
     @Override
     public VaultConnection connect() throws ConnectionException {
         try {
-            return new Ec2VaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, pkcs7, nonce, identity, signature, useInstanceMetadata, responseTimeout, responseTimeoutUnit, followRedirects);
+            VaultConfig config = VaultConfig.builder().
+                    baseUrl(vaultUrl).
+                    authenticator(new AWSEC2Authenticator(awsAuthMount, vaultRole, pkcs7, nonce, identity, signature, useInstanceMetadata)).
+                    httpClient(httpClient).
+                    timeout(responseTimeout).
+                    timeoutUnit(responseTimeoutUnit).
+                    kvVersion(1).
+                    followRedirects(followRedirects).
+                    build();
+
+            return new BasicVaultConnection(config);
         } catch (InterruptedException | DefaultMuleException e) {
             throw new ConnectionException(e);
         }
@@ -175,7 +187,7 @@ public class VaultEc2ConnectionProvider implements CachedConnectionProvider<Vaul
     }
 
     @Override
-    public void stop() throws MuleException {
+    public void stop() {
         httpClient.stop();
     }
 }

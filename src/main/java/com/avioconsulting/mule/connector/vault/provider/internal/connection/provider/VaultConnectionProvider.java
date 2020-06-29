@@ -3,6 +3,8 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
+import com.avioconsulting.mule.vault.api.client.VaultConfig;
+import com.avioconsulting.mule.vault.api.client.auth.TokenAuthenticator;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.exception.DefaultMuleException;
@@ -90,7 +92,15 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
   @Override
   public VaultConnection connect() throws ConnectionException {
     try {
-      return new BasicVaultConnection(vaultToken, vaultUrl, httpClient, responseTimeout, responseTimeoutUnit, followRedirects);
+      VaultConfig config = VaultConfig.builder().
+              authenticator(new TokenAuthenticator(vaultToken)).
+              httpClient(httpClient).
+              baseUrl(vaultUrl).
+              timeout(responseTimeout).
+              timeoutUnit(responseTimeoutUnit).
+              followRedirects(followRedirects).
+              build();
+      return new BasicVaultConnection(config);
     } catch (InterruptedException | DefaultMuleException e) {
       throw new ConnectionException(e);
     }
@@ -134,7 +144,7 @@ public class VaultConnectionProvider implements CachedConnectionProvider<VaultCo
   }
 
   @Override
-  public void stop() throws MuleException {
+  public void stop() {
     httpClient.stop();
   }
 }

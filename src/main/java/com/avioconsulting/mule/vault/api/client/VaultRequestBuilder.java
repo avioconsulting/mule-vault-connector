@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 public class VaultRequestBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(VaultRequestBuilder.class);
-    private static final String VAULT_API_PATH = "/v1/";
 
     private HttpConstants.Protocol protocol;
     private String host;
@@ -98,9 +97,9 @@ public class VaultRequestBuilder {
     }
 
     public VaultRequest build() {
-
+        
         HttpRequestBuilder reqBuilder = HttpRequest.builder().
-                uri(protocol.getScheme() + "://" + host + ":" + port + VAULT_API_PATH + massagePath(secretPath, kvVersion));
+                uri(String.format("%s://%s:%d%s/%s", protocol.getScheme(), host, port, VaultConstants.VAULT_API_PATH, massagePath(secretPath, kvVersion)));
 
         if (config.getNamespace() != null && !config.getNamespace().isEmpty()) {
             reqBuilder.addHeader(VaultConstants.VAULT_NAMESPACE_HEADER, config.getNamespace());

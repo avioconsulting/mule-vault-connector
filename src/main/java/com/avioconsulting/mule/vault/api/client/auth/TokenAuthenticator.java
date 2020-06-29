@@ -20,4 +20,5 @@ public class TokenAuthenticator implements VaultAuthenticator {
             throw new VaultException("No token provided");
         }
     }
+
 }

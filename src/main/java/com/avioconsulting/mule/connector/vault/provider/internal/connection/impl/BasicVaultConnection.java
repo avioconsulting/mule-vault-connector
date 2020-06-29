@@ -1,6 +1,7 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.configuration.VaultConfiguration;
 import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
 import com.avioconsulting.mule.vault.api.client.auth.TokenAuthenticator;
@@ -22,30 +23,27 @@ public final class BasicVaultConnection extends AbstractVaultConnection {
 
   private static final Logger logger = LoggerFactory.getLogger(BasicVaultConnection.class);
 
+
   /**
-   * Construct a connection using a Vault Token
    *
-   * @param vaultToken     Token to use for authentication
-   * @param vaultUrl       URL for the Vault server (https://host:port)
-   * @param httpClient     HttpClient to use to make the connection
+   * @param config
+   * @throws DefaultMuleException
+   * @throws InterruptedException
    */
-  public BasicVaultConnection(String vaultToken, String vaultUrl, HttpClient httpClient, Integer responseTimeout, TimeUnit responseTimeoutUnit, Boolean followRedirects) throws DefaultMuleException, InterruptedException {
-    this.config = VaultConfig.builder().
-            authenticator(new TokenAuthenticator(vaultToken)).
-            httpClient(httpClient).
-            baseUrl(vaultUrl).
-            timeout(responseTimeout).
-            timeoutUnit(responseTimeoutUnit).
-            followRedirects(followRedirects).
-            build();
+  public BasicVaultConnection(VaultConfig config) throws DefaultMuleException, InterruptedException {
+    super(config);
     this.vault = new VaultClient(this.config);
 
     try {
+      logger.info("Authenticating");
       this.vault.authenticate();
       this.validConnection = true;
+      logger.info("Authentication successful");
     } catch (AccessException e) {
+      logger.error("Authentication failed", e);
       throw new VaultAccessException(e);
     } catch (VaultException e) {
+      logger.error("Authentication failed", e);
       throw new DefaultMuleException(e);
     }
   }

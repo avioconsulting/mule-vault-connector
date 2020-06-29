@@ -66,8 +66,11 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
             mount = authMount;
         }
 
+        String authUri = String.format("%s%s/auth/%s/login", config.getBaseUrl(), VaultConstants.VAULT_API_PATH, mount);
+        logger.info(String.format("Authenticating at %s", authUri));
+
         HttpRequestBuilder builder = HttpRequest.builder().
-                uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/" + mount + "/login").
+                uri(authUri).
                 method(HttpConstants.Method.POST);
 
         if (config.isIncludeVaultRequestHeader()) {
@@ -85,7 +88,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
         if (this.nonce != null) {
             payload.addProperty("nonce", this.nonce);
         } else {
-            logger.warn("No nonce provided. Reauthentication may not be possible.");
+            logger.warn("No nonce provided. Re-authentication may not be possible.");
         }
         if (!pkcsUnavailable) {
             payload.addProperty("pkcs7", pkcs7);
@@ -97,7 +100,6 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
 
         CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
 
-
         try {
             HttpResponse response = completable.get();
 
@@ -107,6 +109,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
                 if (authData != null) {
                     JsonElement clientToken = authData.getAsJsonObject().get("client_token");
                     token = clientToken.getAsString();
+                    logger.info("Retrieved client token");
                 }
             } else if (response.getStatusCode() == 201) {
                 token = "";

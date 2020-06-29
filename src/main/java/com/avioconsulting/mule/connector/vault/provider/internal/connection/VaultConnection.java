@@ -8,7 +8,6 @@ import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 
 import java.io.InputStream;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Vault Connection Interface used for all Vault Connections

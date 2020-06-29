@@ -3,7 +3,9 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.api.parameter.proxy.VaultProxyConfig;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.IamVaultConnection;
+import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
+import com.avioconsulting.mule.vault.api.client.VaultConfig;
+import com.avioconsulting.mule.vault.api.client.auth.AWSIAMAuthenticator;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -30,7 +32,7 @@ import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
 /**
- * This class provides {@link IamVaultConnection} instances and the functionality to disconnect and validate those
+ * This class provides {@link VaultConnection} instances and the functionality to disconnect and validate those
  * connections. This is a {@link CachedConnectionProvider} which will cache and reuse connections.
  */
 @DisplayName("IAM Connection")
@@ -109,7 +111,16 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     @Override
     public VaultConnection connect() throws ConnectionException {
         try {
-            return new IamVaultConnection(vaultUrl, awsAuthMount, vaultRole, httpClient, iamRequestUrl, iamRequestBody, iamRequestHeaders, responseTimeout, responseTimeoutUnit, followRedirects);
+            VaultConfig config = VaultConfig.builder().
+                    baseUrl(vaultUrl).
+                    authenticator(new AWSIAMAuthenticator(awsAuthMount, vaultRole, iamRequestUrl, iamRequestBody, iamRequestHeaders)).
+                    httpClient(httpClient).
+                    timeout(responseTimeout).
+                    timeoutUnit(responseTimeoutUnit).
+                    kvVersion(1).
+                    followRedirects(followRedirects).
+                    build();
+            return new BasicVaultConnection(config);
         } catch (InterruptedException | VaultAccessException | DefaultMuleException e) {
             throw new ConnectionException(e);
         }
@@ -153,7 +164,7 @@ public class VaultIamConnectionProvider implements CachedConnectionProvider<Vaul
     }
 
     @Override
-    public void stop() throws MuleException {
+    public void stop() {
         httpClient.stop();
     }
 }
