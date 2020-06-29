@@ -4,6 +4,5 @@ import org.mule.runtime.extension.api.error.ErrorTypeDefinition;
 
 public enum VaultErrorType implements ErrorTypeDefinition<VaultErrorType> {
    ACCESS_DENIED,
-   SECRET_NOT_FOUND,
-   UNKNOWN_ERROR
+   SECRET_NOT_FOUND
 }

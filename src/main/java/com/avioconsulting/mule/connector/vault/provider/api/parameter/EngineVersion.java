@@ -8,13 +8,13 @@ public enum EngineVersion {
     V2 (2)
     ;
 
-    private final Integer engineVersion;
+    private final Integer versionNumber;
 
     EngineVersion(Integer i) {
-        this.engineVersion = i;
+        this.versionNumber = i;
     }
 
     public Integer getEngineVersionNumber() {
-        return this.engineVersion;
+        return this.versionNumber;
     }
 }

@@ -34,10 +34,6 @@ public abstract class AbstractVaultConnection implements VaultConnection {
 
     boolean validConnection;
 
-    public AbstractVaultConnection() {
-        this.config = new VaultConfig();
-    };
-
     public AbstractVaultConnection(VaultConfig config) {
         this.config = config;
     }
@@ -56,7 +52,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
         logger.info(String.format("Getting secret from path (%s)", path));
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
@@ -77,7 +73,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
         logger.info(String.format("Writing string to path (%s)", path));
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
@@ -99,7 +95,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
         logger.info(String.format("Encrypting data with mount point (%s) and key (%s)", transitMountpoint, keyName));
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
@@ -122,7 +118,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
         logger.info(String.format("Decrypting data with mount point (%s) and key (%s)", transitMountpoint, keyName));
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
@@ -144,7 +140,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException, InterruptedException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
         logger.info(String.format("Re-encrypting data with mount point (%s) and key (%s)", transitMountpoint, keyName));
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).

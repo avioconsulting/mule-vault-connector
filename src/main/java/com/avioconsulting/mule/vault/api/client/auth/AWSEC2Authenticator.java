@@ -67,7 +67,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
         }
 
         String authUri = String.format("%s%s/auth/%s/login", config.getBaseUrl(), VaultConstants.VAULT_API_PATH, mount);
-        logger.info(String.format("Authenticating at %s", authUri));
+        logger.info("Authenticating at {}", authUri);
 
         HttpRequestBuilder builder = HttpRequest.builder().
                 uri(authUri).

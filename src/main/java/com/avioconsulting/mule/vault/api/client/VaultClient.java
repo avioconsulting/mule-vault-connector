@@ -55,12 +55,11 @@ public class VaultClient {
             builder.uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/token/lookup");
             builder.addHeader("X-Vault-Token", token);
             builder.method(HttpConstants.Method.GET);
-            logger.info("isValid() " + builder.build().toString());
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
 
             HttpResponse response = completable.get();
 
-            logger.info("isValid() Response: " + response.getStatusCode() + " " + response.toString());
+            logger.info("isValid() Response: {} {}", response.getStatusCode(), response.toString());
             if (response.getStatusCode() == 404) {
                 logger.error("Secret not found in Vault");
             } else if (response.getStatusCode() == 403) {
@@ -83,7 +82,7 @@ public class VaultClient {
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.GET);
 
-            logger.info(String.format("Getting secret from %s", builder.getUri()));
+            logger.info("Getting secret from {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
 
@@ -106,7 +105,7 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
-            logger.info(String.format("Writing secret to %s", builder.getUri()));
+            logger.info("Writing secret to {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -131,7 +130,7 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
-            logger.info(String.format("Encrypting data via %s", builder.getUri()));
+            logger.info("Encrypting data via {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -154,16 +153,14 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
-            logger.info(String.format("Decrypting data via %s", builder.getUri()));
+            logger.info("Decrypting data via {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
 
             JsonObject responseObject = handleResponse(response);
 
-            logger.info("decrypt() returned: " + response.toString());
             String encodedText = responseObject.get(VaultConstants.PLAINTEXT_ATTRIBUTE).toString();
-            logger.info("decrypt() plaintext: " + encodedText);
 
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
             return responseBuilder.attributes(new VaultResponseAttributes(response)).
@@ -182,7 +179,7 @@ public class VaultClient {
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
-            logger.info(String.format("Re-encrypting data via %s", builder.getUri()));
+            logger.info("Re-encrypting data via {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -211,7 +208,7 @@ public class VaultClient {
         } else if (response.getStatusCode() >= 400) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
             String message = elem != null ? elem.toString() : "";
-            logger.error(String.format("Received error response. Status code (%d). Message: %s", response.getStatusCode(), message));
+            logger.error("Received error response. Status code ({}). Message: {}", response.getStatusCode(), message);
             if (response.getStatusCode() == 403) {
                 throw new AccessException(message);
             } else if (response.getStatusCode() == 404) {

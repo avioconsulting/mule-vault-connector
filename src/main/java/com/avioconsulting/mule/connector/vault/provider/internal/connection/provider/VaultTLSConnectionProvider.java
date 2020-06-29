@@ -133,10 +133,10 @@ public class VaultTLSConnectionProvider implements CachedConnectionProvider<Vaul
         HttpClientConfiguration.Builder builder = new HttpClientConfiguration.Builder();
         if (tlsContextFactory != null) {
             if (tlsContextFactory.getTrustStoreConfiguration() != null) {
-                logger.info("Vault TLS Trust Store Path: " + tlsContextFactory.getTrustStoreConfiguration().getPath());
+                logger.info("Vault TLS Trust Store Path: {}", tlsContextFactory.getTrustStoreConfiguration().getPath());
             }
             if (tlsContextFactory.getKeyStoreConfiguration() != null) {
-                logger.info("Vault TLS Key Store Path: " + tlsContextFactory.getKeyStoreConfiguration().getPath());
+                logger.info("Vault TLS Key Store Path: {}", tlsContextFactory.getKeyStoreConfiguration().getPath());
             }
             builder.setTlsContextFactory(tlsContextFactory);
         }

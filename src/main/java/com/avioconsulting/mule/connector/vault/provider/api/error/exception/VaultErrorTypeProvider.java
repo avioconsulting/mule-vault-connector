@@ -9,7 +9,7 @@ import java.util.Set;
 public class VaultErrorTypeProvider implements ErrorTypeProvider {
     @Override
     public Set<ErrorTypeDefinition> getErrorTypes() {
-        Set<ErrorTypeDefinition> errors = new HashSet<>();
+        Set<ErrorTypeDefinition> errors = new HashSet<ErrorTypeDefinition>();
 
         errors.add(VaultErrorType.ACCESS_DENIED);
         errors.add(VaultErrorType.SECRET_NOT_FOUND);

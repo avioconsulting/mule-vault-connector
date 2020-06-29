@@ -2,6 +2,10 @@ package com.avioconsulting.mule.vault.api.client;
 
 public final class VaultConstants {
 
+    private VaultConstants() {
+        super();
+    }
+
     public static final String VAULT_API_PATH = "/v1";
 
     // Header Constants
