@@ -64,7 +64,6 @@ public class AWSEC2Authenticator extends AbstractAuthenticator {
         } else if (isIdentityDocAuth()) {
             payload = payloadWithIdentityDoc();
         } else {
-            logger.error("PKCS7 Signature, Identity Document, and Identity Signature are all null or empty");
             throw new VaultException("PKCS7 Signature or the Identity Document and Signature are required for authentication");
         }
         return payload;
@@ -144,7 +143,6 @@ public class AWSEC2Authenticator extends AbstractAuthenticator {
             }
 
         } catch (InterruptedException | ExecutionException e ) {
-            logger.error("Exception encountered while retrieving PKCS7 from IMDS", e);
             throw new VaultException(e);
         }
     }

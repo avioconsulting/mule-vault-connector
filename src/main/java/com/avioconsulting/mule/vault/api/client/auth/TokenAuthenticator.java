@@ -28,10 +28,12 @@ public class TokenAuthenticator extends AbstractAuthenticator {
     public String authenticate(VaultConfig config) throws VaultException, InterruptedException {
         String skipLookup = System.getProperty(SKIP_LOOKUP_PROPERTY);
         if ("TRUE".equalsIgnoreCase(skipLookup)) {
+            logger.debug("{} property is true. Skipping token lookup.", SKIP_LOOKUP_PROPERTY);
             return token;
         }
 
         try {
+            logger.debug("Looking up token");
             HttpRequestBuilder builder = new VaultRequestBuilder().
                     config(config).
                     kvVersion(1).
@@ -51,7 +53,6 @@ public class TokenAuthenticator extends AbstractAuthenticator {
                 throw new VaultException("No token provided");
             }
         } catch (ExecutionException e) {
-            logger.error("Exception encountered while doing token lookup", e);
             throw new VaultException(e);
         }
     }

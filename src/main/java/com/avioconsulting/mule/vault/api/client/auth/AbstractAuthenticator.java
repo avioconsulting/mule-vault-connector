@@ -53,7 +53,6 @@ public class AbstractAuthenticator implements VaultAuthenticator {
                 }
             }
         } catch (ExecutionException e ) {
-            logger.error("Exception encountered while authenticating", e);
             throw new VaultException(e);
         }
 
