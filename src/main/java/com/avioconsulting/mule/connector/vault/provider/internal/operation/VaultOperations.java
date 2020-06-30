@@ -1,20 +1,16 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.operation;
 
-import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
-
+import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.provider.VaultErrorTypeProvider;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.VaultConfiguration;
-import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
 import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.metadata.fixed.OutputJsonType;
 import org.mule.runtime.extension.api.annotation.param.Config;
-import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.Connection;
+import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.ParameterGroup;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.slf4j.Logger;
@@ -22,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 
+import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
 
 /**
  * @author Adam Mead
@@ -47,9 +44,9 @@ public class VaultOperations {
                                                                 @Connection VaultConnection connection,
                                                                 @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
                                                                 String path)
-                                                        throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, InterruptedException {
     if (overrides.getEngineVersion() != null) {
-      logger.info(String.format("Getting secret at path [%s] with engine version [%d]", path, overrides.getEngineVersion().getEngineVersionNumber()));
+      logger.info("Getting secret at path [{}}] with engine version [{}}]", path, overrides.getEngineVersion().getEngineVersionNumber());
     } else {
       logger.info("Engine Version is null!");
     }
@@ -72,7 +69,7 @@ public class VaultOperations {
                                                                   @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
                                                                   String path,
                                                                   String secret)
-                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, InterruptedException {
     return connection.writeSecret(path, secret, overrides);
   }
 
@@ -95,7 +92,7 @@ public class VaultOperations {
                                                                   String transitMountpoint,
                                                                   String keyName,
                                                                   String plaintext)
-                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, InterruptedException {
     return connection.encryptData(transitMountpoint, keyName, plaintext, overrides);
   }
 
@@ -118,7 +115,7 @@ public class VaultOperations {
                                                                   String transitMountpoint,
                                                                   String keyName,
                                                                   String ciphertext)
-                                                          throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, InterruptedException {
     return connection.decryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 
@@ -141,7 +138,7 @@ public class VaultOperations {
                                                                     String transitMountpoint,
                                                                     String keyName,
                                                                     String ciphertext)
-                                                            throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+          throws DefaultMuleException, InterruptedException {
     return connection.reencryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 

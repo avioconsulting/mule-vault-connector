@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 public class VaultRequestBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(VaultRequestBuilder.class);
-    private static final String VAULT_API_PATH = "/v1/";
 
     private HttpConstants.Protocol protocol;
     private String host;
@@ -28,10 +27,11 @@ public class VaultRequestBuilder {
     private boolean followRedirects = false;
     private VaultConfig config;
 
-    public VaultRequestBuilder() {}
+    public VaultRequestBuilder() {
+        super();
+    }
 
     public VaultRequestBuilder protocol(HttpConstants.Protocol protocol) {
-        logger.info("Protocol: " + protocol.toString());
         if ("http".equals(protocol.getScheme())) {
             logger.warn("Using HTTP URI. HTTPS is recommended.");
         }
@@ -40,13 +40,11 @@ public class VaultRequestBuilder {
     }
 
     public VaultRequestBuilder host(String host) {
-        logger.info("Host: " + host);
         this.host = host;
         return this;
     }
 
     public VaultRequestBuilder port(int port) {
-        logger.info("Port: " + port);
         if (port > -1) {
             this.port = port;
         } else if (this.protocol != null) {
@@ -56,7 +54,6 @@ public class VaultRequestBuilder {
     }
 
     public VaultRequestBuilder uri(String uri) {
-        logger.info("URI in request: " + uri);
         if (uri != null) {
             URI u = URI.create(uri);
             this.protocol(HttpConstants.Protocol.valueOf(u.getScheme().toUpperCase()    ));
@@ -68,6 +65,9 @@ public class VaultRequestBuilder {
 
     public VaultRequestBuilder config(VaultConfig config) {
         this.config = config;
+        this.timeout = config.getTimeout();
+        this.timeoutUnit = config.getTimeoutUnit();
+        this.kvVersion = config.getKvVersion();
         return this.uri(config.getBaseUrl()).kvVersion(config.getKvVersion());
     }
 
@@ -100,7 +100,7 @@ public class VaultRequestBuilder {
     public VaultRequest build() {
 
         HttpRequestBuilder reqBuilder = HttpRequest.builder().
-                uri(protocol.getScheme() + "://" + host + ":" + port + VAULT_API_PATH + massagePath(secretPath, kvVersion));
+                uri(String.format("%s://%s:%d%s/%s", protocol.getScheme(), host, port, VaultConstants.VAULT_API_PATH, massagePath(secretPath, kvVersion)));
 
         if (config.getNamespace() != null && !config.getNamespace().isEmpty()) {
             reqBuilder.addHeader(VaultConstants.VAULT_NAMESPACE_HEADER, config.getNamespace());
@@ -135,7 +135,7 @@ public class VaultRequestBuilder {
             }
             massagedPath = sb.toString();
         }
-        logger.info("messagePath() Message Path: " + massagedPath);
+        logger.info("messagePath() Message Path: {}", massagedPath);
         return massagedPath;
     }
 }

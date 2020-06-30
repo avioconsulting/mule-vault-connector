@@ -7,7 +7,7 @@
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
 
-    <vault:config name="basicTrustStoreConfig" engineVersion="v2">
+    <vault:config name="basicTrustStoreConfig" engineVersion="V2">
         <vault:basic-connection vaultToken="${vaultToken}" vaultUrl="${vaultUrl}" >
             <tls:context>
                 <tls:trust-store type="jks" path="${trustStoreFile}" password="password"/>
@@ -15,7 +15,7 @@
         </vault:basic-connection>
     </vault:config>
 
-    <vault:config name="jksConfig" engineVersion="v2">
+    <vault:config name="jksConfig" engineVersion="V2">
         <vault:tls-connection vaultUrl="${vaultUrl}" >
             <tls:context>
                 <tls:trust-store type="jks" path="${jksFile}" password="password"/>

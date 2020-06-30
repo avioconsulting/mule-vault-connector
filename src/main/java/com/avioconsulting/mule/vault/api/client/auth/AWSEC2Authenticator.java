@@ -1,14 +1,9 @@
 package com.avioconsulting.mule.vault.api.client.auth;
 
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.avioconsulting.mule.vault.api.client.VaultConstants;
-import com.avioconsulting.mule.vault.api.client.exception.AccessException;
 import com.avioconsulting.mule.vault.api.client.exception.VaultException;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.mule.runtime.http.api.HttpConstants;
-import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
 import org.mule.runtime.http.api.domain.message.request.HttpRequest;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
@@ -21,12 +16,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public class AWSEC2Authenticator implements VaultAuthenticator {
+public class AWSEC2Authenticator extends AbstractAuthenticator {
 
     // This is the URI to use to retrieve the PKCS7 Signature
     // See: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html
     private static final String INSTANCE_PKCS7_URI = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7";
     private static final String CUSTOM_IMDS_URI_PROPERTY = "CUSTOM_IMDS";
+    private static final String DEFAULT_AUTH_MOUNT = "aws";
     private static final Logger logger = LoggerFactory.getLogger(AWSEC2Authenticator.class);
 
     private String authMount;
@@ -48,82 +44,69 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
     }
 
     @Override
-    public String authenticate(VaultConfig config) throws AccessException, VaultException {
-        String token = null;
-        String mount = "aws";
+    public String getAuthPath() {
+        String mount = DEFAULT_AUTH_MOUNT;
 
-        if (useInstanceMetadata) {
-            pkcs7 = lookupPKCS7(config);
+        if (this.authMount != null && !this.authMount.isEmpty()) {
+            mount = this.authMount;
         }
-        boolean pkcsUnavailable = pkcs7 == null || pkcs7.isEmpty();
-        boolean identityUnavailable = identity == null || identity.isEmpty() || signature == null || signature.isEmpty();
-        if (pkcsUnavailable && identityUnavailable) {
-            logger.error("PKCS7 Signature, Identity Document, and Identity Signature are all null or empty");
+        logger.debug("Authentication mount: {}", mount);
+        return String.format("auth/%s/login", mount);
+    }
+
+    @Override
+    public String getAuthPayload(VaultConfig config) throws VaultException{
+        String payload;
+        if (useInstanceMetadata) {
+            payload = payloadWithMetadata(config);
+        } else if (isPKCS7Auth()) {
+            payload = payloadWithPKCS7();
+        } else if (isIdentityDocAuth()) {
+            payload = payloadWithIdentityDoc();
+        } else {
             throw new VaultException("PKCS7 Signature or the Identity Document and Signature are required for authentication");
         }
+        return payload;
+    }
 
-        if (authMount != null && !authMount.isEmpty()) {
-            mount = authMount;
-        }
+    private boolean isPKCS7Auth() {
+        return pkcs7 != null && !pkcs7.isEmpty();
+    }
 
-        HttpRequestBuilder builder = HttpRequest.builder().
-                uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/" + mount + "/login").
-                method(HttpConstants.Method.POST);
+    private boolean isIdentityDocAuth() {
+        return identity != null && !identity.isEmpty() && signature != null && !signature.isEmpty();
+    }
 
-        if (config.isIncludeVaultRequestHeader()) {
-             builder.addHeader(VaultConstants.VAULT_REQUEST_HEADER, "true");
-        }
+    private String payloadWithMetadata(VaultConfig config) throws VaultException {
+        lookupPKCS7(config);
+        return payloadWithPKCS7();
+    }
 
-        if (config.getNamespace() != null && !config.getNamespace().isEmpty()) {
-            builder.addHeader(VaultConstants.VAULT_NAMESPACE_HEADER, config.getNamespace());
-        }
+    private String payloadWithPKCS7() {
+        JsonObject payload = addOptionalProperties(new JsonObject());
+        payload.addProperty("pkcs7", pkcs7);
+        return payload.toString();
+    }
 
-        JsonObject payload = new JsonObject();
+    private String payloadWithIdentityDoc() {
+        JsonObject payload = addOptionalProperties(new JsonObject());
+        payload.addProperty("identity", this.identity);
+        payload.addProperty("signature", this.signature);
+        return payload.toString();
+    }
+
+    private JsonObject addOptionalProperties(JsonObject json) {
+
         if (this.role != null) {
-            payload.addProperty("role", this.role);
+            json.addProperty("role", this.role);
         }
         if (this.nonce != null) {
-            payload.addProperty("nonce", this.nonce);
+            json.addProperty("nonce", this.nonce);
         } else {
-            logger.warn("No nonce provided. Reauthentication may not be possible.");
-        }
-        if (!pkcsUnavailable) {
-            payload.addProperty("pkcs7", pkcs7);
-        } else {
-            payload.addProperty("identity", this.identity);
-            payload.addProperty("signature", this.signature);
-        }
-        builder.entity(new ByteArrayHttpEntity(payload.toString().getBytes()));
-
-        CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
-
-        try {
-            HttpResponse response = completable.get();
-
-            if (response.getStatusCode() == 200 && response.getEntity() != null) {
-                JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-                JsonElement authData = elem.getAsJsonObject().get("auth");
-                if (authData != null) {
-                    JsonElement clientToken = authData.getAsJsonObject().get("client_token");
-                    token = clientToken.getAsString();
-                }
-            } else if (response.getStatusCode() == 201) {
-                token = "";
-            } else if (response.getStatusCode() >= 400) {
-                JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
-                String message = elem != null ? elem.toString() : "";
-                if (response.getStatusCode() == 403) {
-                    throw new AccessException(message);
-                } else {
-                    throw new VaultException(response.getStatusCode(), message);
-                }
-            }
-        } catch (InterruptedException | ExecutionException e ) {
-            logger.error("Exception encountered while authenticating", e);
-            throw new VaultException(e);
+            logger.warn("No nonce provided. Re-authentication may not be possible.");
         }
 
-        return token;
+        return json;
     }
 
     /**
@@ -131,8 +114,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
      *
      * @return the PKCS7 value with the '\n' characters removed
      */
-    private String lookupPKCS7(VaultConfig config) throws VaultException {
-        String pkcs7;
+    private void lookupPKCS7(VaultConfig config) throws VaultException {
         String imdsUri = INSTANCE_PKCS7_URI;
 
         // This assists in testing and will help if Amazon moves the IMDS service
@@ -161,10 +143,7 @@ public class AWSEC2Authenticator implements VaultAuthenticator {
             }
 
         } catch (InterruptedException | ExecutionException e ) {
-            logger.error("Exception encountered while retrieving PKCS7 from IMDS", e);
             throw new VaultException(e);
         }
-
-        return pkcs7;
     }
 }

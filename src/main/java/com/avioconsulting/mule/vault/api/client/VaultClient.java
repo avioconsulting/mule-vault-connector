@@ -11,7 +11,6 @@ import org.mule.runtime.api.metadata.MediaType;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
-import org.mule.runtime.http.api.domain.message.request.HttpRequest;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 import org.slf4j.Logger;
@@ -44,44 +43,17 @@ public class VaultClient {
         return token;
     }
 
-    public void authenticate() throws AccessException, VaultException {
+    public void authenticate() throws AccessException, VaultException, InterruptedException {
         this.token = config.getAuthenticator().authenticate(config);
     }
 
-    public boolean validateToken() throws VaultException {
-        boolean valid = false;
-        HttpRequestBuilder builder = HttpRequest.builder();
-        builder.uri(config.getBaseUrl() + VaultConstants.VAULT_API_PATH + "/auth/token/lookup" );
-        builder.addHeader("X-Vault-Token", token);
-        builder.method(HttpConstants.Method.GET);
-        logger.info("isValid() " + builder.build().toString());
-        CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), config.getTimeoutInMilliseconds(), config.isFollowRedirects(), null);
-
-        try {
-            HttpResponse response = completable.get();
-
-            logger.info("isValid() Response: " + response.getStatusCode() + " " + response.toString());
-            if (response.getStatusCode() == 404) {
-                logger.error("Secret not found in Vault");
-            } else if (response.getStatusCode() == 403) {
-                logger.error("Access denied in Vault");
-            } else if (response.getStatusCode() > 299){
-                logger.error("Unknown Vault Exception");
-            } else {
-                valid = true;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            throw new VaultException(e);
-        }
-
-        return valid;
-    }
-
-    public Result<InputStream, VaultResponseAttributes> getSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.GET);
+
+            logger.info("Getting secret from {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
 
@@ -92,17 +64,19 @@ public class VaultClient {
                     output(new ByteArrayInputStream(responseData.toString().getBytes())).
                     length(responseData.toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
 
-    public Result<InputStream, VaultResponseAttributes> writeSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
+
+            logger.info("Writing secret to {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -113,18 +87,21 @@ public class VaultClient {
                     output(new ByteArrayInputStream(responseData.toString().getBytes())).
                     length(responseData.toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
+
+
     }
 
-    public Result<InputStream, VaultResponseAttributes> encryptData(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
+
+            logger.info("Encrypting data via {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
@@ -132,61 +109,60 @@ public class VaultClient {
             JsonObject responseData = handleResponse(response);
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
             return responseBuilder.attributes(new VaultResponseAttributes(response)).
-                    output(new ByteArrayInputStream(responseData.get("ciphertext").toString().getBytes())).
-                    length(responseData.get("ciphertext").toString().length()).
+                    output(new ByteArrayInputStream(responseData.get(VaultConstants.CIPHERTEXT_ATTRIBUTE).toString().getBytes())).
+                    length(responseData.get(VaultConstants.CIPHERTEXT_ATTRIBUTE).toString().length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
 
-    public Result<InputStream, VaultResponseAttributes> decryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
-            logger.info("URI: " + builder.getUri());
+            logger.info("Decrypting data via {}", builder.getUri());
 
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
 
             JsonObject responseObject = handleResponse(response);
 
-            logger.info("decrypt() returned: " + response.toString());
-            String encodedText = responseObject.get("plaintext").toString();
-            logger.info("decrypt() plaintext: " + encodedText);
+            String encodedText = responseObject.get(VaultConstants.PLAINTEXT_ATTRIBUTE).toString();
 
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
             return responseBuilder.attributes(new VaultResponseAttributes(response)).
                     output(new ByteArrayInputStream(encodedText.getBytes())).
                     length(encodedText.length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
 
-    public Result<InputStream, VaultResponseAttributes> reencryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {
         try {
             HttpRequestBuilder builder = request.getHttpRequestBuilder().
                     addHeader(VaultConstants.VAULT_TOKEN_HEADER, token).
                     method(HttpConstants.Method.POST).
                     entity(new ByteArrayHttpEntity(request.getPayload().getBytes()));
 
+            logger.info("Re-encrypting data via {}", builder.getUri());
+
             CompletableFuture<HttpResponse> completable = config.getHttpClient().sendAsync(builder.build(), request.getResponseTimeout(), request.isFollowRedirects(), null);
             HttpResponse response = completable.get();
 
             JsonObject responseData = handleResponse(response);
-            String reencryptedText = responseData.get("ciphertext").toString();
+            String reencryptedText = responseData.get(VaultConstants.CIPHERTEXT_ATTRIBUTE).toString();
             Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
             return responseBuilder.attributes(new VaultResponseAttributes(response)).
                     output(new ByteArrayInputStream(reencryptedText.getBytes())).
                     length(reencryptedText.length()).
                     mediaType(MediaType.APPLICATION_JSON).build();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException e) {
             throw new VaultException(e);
         }
     }
@@ -195,12 +171,15 @@ public class VaultClient {
         if (response.getStatusCode() == 200 && response.getEntity() != null) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
             JsonObject jsonObject = elem.getAsJsonObject();
-            return jsonObject.getAsJsonObject("data");
+            logger.info("Received successful response (data omitted for security)");
+            return jsonObject.getAsJsonObject(VaultConstants.DATA_ATTRIBUTE);
         } else if (response.getStatusCode() == 201) {
+            logger.info("Received successful response. No data included.");
             return new JsonObject();
         } else if (response.getStatusCode() >= 400) {
             JsonElement elem = JsonParser.parseReader(new InputStreamReader(response.getEntity().getContent()));
             String message = elem != null ? elem.toString() : "";
+            logger.error("Received error response. Status code ({}). Message: {}", response.getStatusCode(), message);
             if (response.getStatusCode() == 403) {
                 throw new AccessException(message);
             } else if (response.getStatusCode() == 404) {

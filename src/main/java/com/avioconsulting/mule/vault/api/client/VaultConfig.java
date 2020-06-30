@@ -21,7 +21,7 @@ public class VaultConfig {
         super();
     }
 
-    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, String token, Integer kvVersion, Boolean followRedirects) {
+    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, Integer kvVersion, Boolean followRedirects) {
         this.httpClient = httpClient;
         this.authenticator = authenticator;
         this.baseUrl = baseUrl;
@@ -31,7 +31,7 @@ public class VaultConfig {
         this.followRedirects = followRedirects;
     }
 
-    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, String token, Integer kvVersion, Boolean followRedirects, String namespace, boolean includeVaultRequestHeader) {
+    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, Integer kvVersion, Boolean followRedirects, String namespace, boolean includeVaultRequestHeader) {
         this.httpClient = httpClient;
         this.authenticator = authenticator;
         this.baseUrl = baseUrl;

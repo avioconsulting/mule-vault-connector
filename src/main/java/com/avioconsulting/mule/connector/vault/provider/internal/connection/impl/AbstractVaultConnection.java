@@ -1,12 +1,13 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.SecretNotFoundException;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.vault.api.client.VaultClient;
 import com.avioconsulting.mule.vault.api.client.VaultConfig;
+import com.avioconsulting.mule.vault.api.client.VaultConstants;
 import com.avioconsulting.mule.vault.api.client.VaultRequestBuilder;
 import com.avioconsulting.mule.vault.api.client.exception.AccessException;
 import com.avioconsulting.mule.vault.api.client.exception.VaultException;
@@ -31,34 +32,29 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     VaultClient vault;
     VaultConfig config;
 
-    public AbstractVaultConnection() {
-        this.config = new VaultConfig();
-    };
+    boolean validConnection;
 
     public AbstractVaultConnection(VaultConfig config) {
+        super();
         this.config = config;
     }
 
     @Override
     public void invalidate() {
+        logger.info("Invalidating connection");
+        this.vault.invalidate();
+        this.validConnection = false;
     }
 
     @Override
-    public boolean isValid() throws VaultAccessException, DefaultMuleException {
-        try {
-            if (vault.getToken() == null || vault.getToken().isEmpty()) {
-                vault.authenticate();
-            }
-            return vault.validateToken();
-        } catch (AccessException e) {
-            throw new VaultAccessException(e);
-        } catch (VaultException e) {
-            throw new DefaultMuleException(e);
-        }
+    public boolean isValid() {
+        logger.info("isValid(): {}", validConnection);
+        return validConnection;
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
+        logger.info("Getting secret from path ({})", path);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -78,7 +74,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
+        logger.info("Writing string to path ({})", path);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -99,7 +96,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
+        logger.info("Encrypting data with mount point ({}) and key ({})", transitMountpoint, keyName);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -108,7 +106,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 secretPath(transitMountpoint + "/encrypt/" + keyName);
 
         JsonObject jo = new JsonObject();
-        jo.addProperty("plaintext", plaintext);
+        jo.addProperty(VaultConstants.PLAINTEXT_ATTRIBUTE, plaintext);
         try {
             return vault.encryptData(builder.payload(jo.toString()).build());
         } catch (AccessException e) {
@@ -121,7 +119,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> decryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
+        logger.info("Decrypting data with mount point ({}) and key ({})", transitMountpoint, keyName);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -129,7 +128,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 kvVersion(overrides.getEngineVersion().getEngineVersionNumber()).
                 secretPath(transitMountpoint + "/decrypt/" + keyName);
         JsonObject jo = new JsonObject();
-        jo.addProperty("ciphertext", ciphertext);
+        jo.addProperty(VaultConstants.CIPHERTEXT_ATTRIBUTE, ciphertext);
         try {
             return vault.decryptData(builder.payload(jo.toString()).build());
         } catch (AccessException e) {
@@ -142,7 +141,8 @@ public abstract class AbstractVaultConnection implements VaultConnection {
     }
 
     @Override
-    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, VaultAccessException, SecretNotFoundException {
+    public Result<InputStream, VaultResponseAttributes> reencryptData(String transitMountpoint, String keyName, String ciphertext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
+        logger.info("Re-encrypting data with mount point ({}}) and key ({})", transitMountpoint, keyName);
         VaultRequestBuilder builder = new VaultRequestBuilder().
                 config(config).
                 followRedirects(overrides.isFollowRedirects()).
@@ -151,7 +151,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
                 secretPath(transitMountpoint + "/rewrap/" + keyName);
 
         JsonObject jo = new JsonObject();
-        jo.addProperty("ciphertext", ciphertext);
+        jo.addProperty(VaultConstants.CIPHERTEXT_ATTRIBUTE, ciphertext);
         try {
             return vault.reencryptData(builder.payload(jo.toString()).build());
         } catch (AccessException e) {

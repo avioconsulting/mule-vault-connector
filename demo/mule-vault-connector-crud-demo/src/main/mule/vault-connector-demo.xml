@@ -19,7 +19,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<http:listener-connection host="0.0.0.0" port="8081">
 		</http:listener-connection>
 	</http:listener-config>
-	<vault:config name="Vault_Config_KV" doc:name="Vault Config" doc:id="b9354687-5b06-4b2a-bca8-f54774200cb3" engineVersion="v2">
+	<vault:config name="Vault_Config_KV" doc:name="Vault Config" doc:id="b9354687-5b06-4b2a-bca8-f54774200cb3" engineVersion="V2">
 		<vault:basic-connection vaultUrl="http://localhost:8200" vaultToken="devroot" />
 	</vault:config>
 	<vault:config name="Vault_Config_Transit" doc:name="Vault Config" doc:id="1afb8d42-e96c-4ee9-9eeb-739ddaa37b20" >

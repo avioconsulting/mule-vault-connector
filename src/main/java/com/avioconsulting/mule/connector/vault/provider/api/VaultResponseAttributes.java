@@ -5,6 +5,7 @@ import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 
 import static java.lang.System.lineSeparator;
 import java.io.Serializable;
+import java.util.Map;
 
 public class VaultResponseAttributes implements Serializable {
 
@@ -42,10 +43,10 @@ public class VaultResponseAttributes implements Serializable {
         sb.append("reasonPhrase=");
         sb.append(reasonPhrase);
         sb.append(lineSeparator());
-        for (String key : headers.keySet()) {
-            sb.append(key);
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            sb.append(entry.getKey());
             sb.append("=");
-            sb.append(headers.get(key));
+            sb.append(entry.getValue());
             sb.append(lineSeparator());
         }
         return sb.toString();
