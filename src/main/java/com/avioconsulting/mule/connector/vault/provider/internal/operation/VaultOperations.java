@@ -1,20 +1,24 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.operation;
 
-import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
-import static org.mule.runtime.extension.api.annotation.param.MediaType.ANY;
-
+import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
+import com.avioconsulting.mule.connector.vault.provider.internal.error.provider.VaultErrorTypeProvider;
+import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
+import com.avioconsulting.mule.connector.vault.provider.internal.configuration.VaultConfiguration;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.SecretNotFoundException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.UnknownVaultException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultAccessException;
-import com.avioconsulting.mule.connector.vault.provider.api.error.exception.VaultErrorTypeProvider;
+import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.extension.api.annotation.error.Throws;
-import org.mule.runtime.extension.api.annotation.param.MediaType;
+import org.mule.runtime.extension.api.annotation.metadata.fixed.OutputJsonType;
+import org.mule.runtime.extension.api.annotation.param.Config;
 import org.mule.runtime.extension.api.annotation.param.Connection;
+import org.mule.runtime.extension.api.annotation.param.MediaType;
+import org.mule.runtime.extension.api.annotation.param.ParameterGroup;
+import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 
+import static org.mule.runtime.extension.api.annotation.param.MediaType.APPLICATION_JSON;
 
 /**
  * @author Adam Mead
@@ -35,8 +39,18 @@ public class VaultOperations {
    */
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = APPLICATION_JSON, strict = false)
-  public String getSecret(@Connection VaultConnection connection, String path) throws VaultAccessException, SecretNotFoundException, UnknownVaultException {
-    return connection.getSecret(path);
+  @OutputJsonType(schema = "metadata/secret-schema.json")
+  public Result<InputStream, VaultResponseAttributes> getSecret(@Config VaultConfiguration config,
+                                                                @Connection VaultConnection connection,
+                                                                @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
+                                                                String path)
+          throws DefaultMuleException, InterruptedException {
+    if (overrides.getEngineVersion() != null) {
+      logger.info("Getting secret at path [{}}] with engine version [{}}]", path, overrides.getEngineVersion().getEngineVersionNumber());
+    } else {
+      logger.info("Engine Version is null!");
+    }
+    return connection.getSecret(path, overrides);
   }
 
   /**
@@ -49,8 +63,14 @@ public class VaultOperations {
    */
   @Throws(VaultErrorTypeProvider.class)
   @MediaType(value = APPLICATION_JSON, strict = false)
-  public void writeSecret(@Connection VaultConnection connection, String path, String secret) throws VaultAccessException, UnknownVaultException {
-    connection.writeSecret(path, secret);
+  @OutputJsonType(schema = "metadata/secret-schema.json")
+  public Result<InputStream, VaultResponseAttributes> writeSecret(@Config VaultConfiguration config,
+                                                                  @Connection VaultConnection connection,
+                                                                  @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
+                                                                  String path,
+                                                                  String secret)
+          throws DefaultMuleException, InterruptedException {
+    return connection.writeSecret(path, secret, overrides);
   }
 
   /**
@@ -59,14 +79,21 @@ public class VaultOperations {
    * @param connection a connected {@link VaultConnection}
    * @param transitMountpoint the mount point for the transit secret engine to use
    * @param keyName the key to use from the given endpoint
-   * @param plaintext the plaintext to be encrypted
+   * @param plaintext the plaintext to be encrypted - must be Base64 encoded
    * @return the encrypted value of the plaintext
    * @throws Exception if there is an issue from Vault
    */
   @Throws(VaultErrorTypeProvider.class)
-  @MediaType(value = ANY, strict = false)
-  public String encryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String plaintext) throws VaultAccessException, UnknownVaultException {
-    return connection.encryptData(transitMountpoint, keyName, plaintext);
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/encryption-schema.json")
+  public Result<InputStream, VaultResponseAttributes> encryptData(@Config VaultConfiguration config,
+                                                                  @Connection VaultConnection connection,
+                                                                  @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
+                                                                  String transitMountpoint,
+                                                                  String keyName,
+                                                                  String plaintext)
+          throws DefaultMuleException, InterruptedException {
+    return connection.encryptData(transitMountpoint, keyName, plaintext, overrides);
   }
 
   /**
@@ -76,12 +103,20 @@ public class VaultOperations {
    * @param transitMountpoint the mount point for the transit secret engine to use
    * @param keyName the key to use from the given endpoint
    * @param ciphertext the encrypted data to be decrypted
-   * @return the decrypted value of the ciphertext
+   * @return the Base64 encoded, decrypted value of the ciphertext
    * @throws Exception if there is an issue from Vault
    */
-  @MediaType(value = ANY, strict = false)
-  public String decryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
-    return connection.decryptData(transitMountpoint, keyName, ciphertext);
+  @Throws(VaultErrorTypeProvider.class)
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/encryption-schema.json")
+  public Result<InputStream, VaultResponseAttributes> decryptData(@Config VaultConfiguration config,
+                                                                  @Connection VaultConnection connection,
+                                                                  @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
+                                                                  String transitMountpoint,
+                                                                  String keyName,
+                                                                  String ciphertext)
+          throws DefaultMuleException, InterruptedException {
+    return connection.decryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 
   /**
@@ -94,9 +129,17 @@ public class VaultOperations {
    * @return the re-encrypted ciphertext
    * @throws Exception if there is an issue from Vault
    */
-  @MediaType(value = ANY, strict = false)
-  public String reencryptData(@Connection VaultConnection connection, String transitMountpoint, String keyName, String ciphertext) throws VaultAccessException, UnknownVaultException {
-    return connection.reencryptData(transitMountpoint, keyName, ciphertext);
+  @Throws(VaultErrorTypeProvider.class)
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/encryption-schema.json")
+  public Result<InputStream, VaultResponseAttributes> reencryptData(@Config VaultConfiguration config,
+                                                                    @Connection VaultConnection connection,
+                                                                    @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
+                                                                    String transitMountpoint,
+                                                                    String keyName,
+                                                                    String ciphertext)
+          throws DefaultMuleException, InterruptedException {
+    return connection.reencryptData(transitMountpoint, keyName, ciphertext, overrides);
   }
 
 }

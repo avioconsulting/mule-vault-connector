@@ -4,6 +4,7 @@
 # (1) Install SSL dependencies
 #####
 apk add --no-cache libressl
+apk add --no-cache jq
 
 
 #####
