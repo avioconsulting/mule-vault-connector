@@ -3,8 +3,8 @@ package com.avioconsulting.mule.connector.vault.provider.internal.connection.pro
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.impl.BasicVaultConnection;
 import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.VaultAccessException;
-import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.avioconsulting.mule.vault.api.client.auth.TLSAuthenticator;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConfig;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.TLSAuthenticator;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.PoolingConnectionProvider;
 import org.mule.runtime.api.exception.DefaultMuleException;

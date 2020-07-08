@@ -1,7 +1,7 @@
-package com.avioconsulting.mule.vault.api.client.auth;
+package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth;
 
-import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.avioconsulting.mule.vault.api.client.exception.VaultException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConfig;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

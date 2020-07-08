@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.vault.api.client.exception;
+package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception;
 
 public class SecretNotFoundException extends Exception {
     public SecretNotFoundException(String errorMessage) {
