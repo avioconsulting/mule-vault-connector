@@ -82,12 +82,12 @@ Use this connection type to authenticate using Vault's AWS Authentication backen
 
 Attributes:
 
-*	vaultUrl - Vault Base URL (i.e. https://localhost:8200)
-*	awsAuthMount - (Optional) Vault mount point for AWS Authentication backend. If not specified, `aws` will be used.
-*	vaultRole - Name of the role against which the login is being attempted. If role is not specified, then the login endpoint looks for a role bearing the name of the AMI ID of the EC2 instance that is trying to login if using the ec2 auth method, or the "friendly name" (i.e., role name or username) of the IAM principal authenticated. If a matching role is not found, login fails
-*	iamRequestUrl - Base64 encoded HTTP URL used in the signed request. Most likely `aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8=`, which is just the Base64 encoded value of `https://sts.amazonaws.com/` as most requests will probably use POST with an empty URI
-*	iamRequestBody - Base64 encoded body of the signed request. Most likely `QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ==`, which is the Base64 encoded value of `Action=GetCallerIdentity&Version=2011-06-15`
-*	iamRequestHeaders - Request headers
+*	`vaultUrl` - Vault Base URL (i.e. https://localhost:8200)
+*	`awsAuthMount` - (Optional) Vault mount point for AWS Authentication backend. If not specified, `aws` will be used.
+*	`vaultRole` - Name of the role against which the login is being attempted. If role is not specified, then the login endpoint looks for a role bearing the name of the AMI ID of the EC2 instance that is trying to login if using the ec2 auth method, or the "friendly name" (i.e., role name or username) of the IAM principal authenticated. If a matching role is not found, login fails
+*	`iamRequestUrl` - Base64 encoded HTTP URL used in the signed request. Most likely `aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8=`, which is just the Base64 encoded value of `https://sts.amazonaws.com/` as most requests will probably use POST with an empty URI
+*	`iamRequestBody` - Base64 encoded body of the signed request. Most likely `QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ==`, which is the Base64 encoded value of `Action=GetCallerIdentity&Version=2011-06-15`
+*	`iamRequestHeaders` - Request headers
 
 ```xml
 <vault:config name="config" >
