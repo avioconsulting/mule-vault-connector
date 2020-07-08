@@ -10,7 +10,7 @@ Attributes:
 * `vaultUrl` - Vault Base URL (i.e. https://localhost:8200)
 * `vaultToken` - Token to use to authenticate to Vault
 * `engineVersion` - (Optional) the version of the secrets engine to use. If not specified, V1 will be used.
-* `tls:context` - (Optional) TLS trust/key store configuration. See the [official documentation](1).
+* `tls:context` - (Optional) TLS trust/key store configuration. See the [official documentation](https://docs.mulesoft.com/mule-runtime/4.3/tls-configuration).
 
 ```xml
 <vault:config name="config" engineVersion="V2">
@@ -30,7 +30,7 @@ Attributes:
 * `vaultUrl` - Vault Base URL (i.e. https://localhost:8200)
 * `mount` - (Optional) path the TLS Certificate Authentication backend is mounted on
 * `certificateRole` - (Optional) Name of certificate role to authenticate against. If not set, all will be tried.
-* `tls:context` - TLS trust/key store configuration. See the [official documentation](1).
+* `tls:context` - TLS trust/key store configuration. See the [official documentation](https://docs.mulesoft.com/mule-runtime/4.3/tls-configuration).
 
 ```xml
 <vault:config name="jksConfig">
@@ -258,5 +258,3 @@ The Mule 4 Vault Connector can be deployed to an Exchange with a few small modif
     </servers>
     ```
 1. Execute `mvn deploy` to publish to Exchange
-
-[1]: https://docs.mulesoft.com/mule-runtime/4.3/tls-configuration
