@@ -1,10 +1,10 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.connection.impl;
 
 import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.VaultAccessException;
-import com.avioconsulting.mule.vault.api.client.VaultClient;
-import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.avioconsulting.mule.vault.api.client.exception.AccessException;
-import com.avioconsulting.mule.vault.api.client.exception.VaultException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultClient;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConfig;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.AccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
 import org.mule.runtime.api.exception.DefaultMuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

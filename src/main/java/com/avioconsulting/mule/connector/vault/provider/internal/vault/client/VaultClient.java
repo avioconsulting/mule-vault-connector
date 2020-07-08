@@ -1,9 +1,9 @@
-package com.avioconsulting.mule.vault.api.client;
+package com.avioconsulting.mule.connector.vault.provider.internal.vault.client;
 
 import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes;
-import com.avioconsulting.mule.vault.api.client.exception.AccessException;
-import com.avioconsulting.mule.vault.api.client.exception.SecretNotFoundException;
-import com.avioconsulting.mule.vault.api.client.exception.VaultException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.AccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

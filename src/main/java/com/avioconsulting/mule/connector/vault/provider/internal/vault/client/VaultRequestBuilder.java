@@ -1,4 +1,4 @@
-package com.avioconsulting.mule.vault.api.client;
+package com.avioconsulting.mule.connector.vault.provider.internal.vault.client;
 
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.domain.entity.ByteArrayHttpEntity;
