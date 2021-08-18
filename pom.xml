@@ -4,50 +4,75 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>f2ea2cb4-c600-4bb5-88e8-e952ff5591ee</groupId>
+    <groupId>com.avioconsulting.mule.connector</groupId>
     <artifactId>vault-connector</artifactId>
-    <version>0.2.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>mule-extension</packaging>
-    <name>Vault Connector</name>
+    <name>Vault Connector - Mule 4</name>
 
     <parent>
-        <groupId>org.mule.extensions</groupId>
-        <artifactId>mule-modules-parent</artifactId>
-        <version>1.1.3</version>
+        <groupId>org.mule.connectors</groupId>
+        <artifactId>mule-certified-parent</artifactId>
+        <version>1.4.1</version>
     </parent>
+
+    <properties>
+        <muleMetadataVersion>1.1.2</muleMetadataVersion>
+        <muleServicesVersion>1.1.2</muleServicesVersion>
+        <mockServerVersion>5.10.0</mockServerVersion>
+        <gsonVersion>2.8.6</gsonVersion>
+        <testContainersVersion>1.14.3</testContainersVersion>
+        <bouncyCastleVersion>1.67</bouncyCastleVersion>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.3</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>add-test-source</id>
+                        <phase>process-resources</phase>
                         <goals>
-                            <goal>prepare-agent</goal>
+                            <goal>add-test-source</goal>
                         </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/test-integration/java</source>
+                            </sources>
+                        </configuration>
                     </execution>
                     <execution>
-                        <id>report</id>
-                        <phase>test</phase>
+                        <id>add-integration-test-resources</id>
+                        <phase>process-resources</phase>
                         <goals>
-                            <goal>report</goal>
+                            <goal>add-test-resource</goal>
                         </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>src/test-integration/resources</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.12.0</version>
-                <configuration>
-                    <analysisCache>true</analysisCache>
-                    <printFailingErrors>true</printFailingErrors>
-                </configuration>
+                <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>integration-test</id>
                         <goals>
-                            <goal>check</goal>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>verify</id>
+                        <goals>
+                            <goal>verify</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -55,6 +80,16 @@
         </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.0.0-M5</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
@@ -68,36 +103,74 @@
             </plugins>
         </pluginManagement>
     </build>
-	<dependencies>
-		<dependency>
-		    <groupId>com.bettercloud</groupId>
-		    <artifactId>vault-java-driver</artifactId>
-		    <version>4.0.0</version>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>org.mule.runtime</groupId>
+            <artifactId>mule-metadata-model-json</artifactId>
+            <version>${muleMetadataVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.services</groupId>
+            <artifactId>mule-service-http</artifactId>
+            <version>${muleServicesVersion}</version>
+            <classifier>mule-service</classifier>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.services</groupId>
+            <artifactId>mule-service-scheduler</artifactId>
+            <version>${muleServicesVersion}</version>
+            <classifier>mule-service</classifier>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.2</version>
+            <version>${gsonVersion}</version>
+            <scope>compile</scope>
         </dependency>
+
+        <!-- Test Dependencies -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.6.0</version>
+            <version>${testContainersVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.67</version>
+            <version>${bouncyCastleVersion}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.60</version>
+            <version>${bouncyCastleVersion}</version>
             <scope>test</scope>
         </dependency>
-	</dependencies>
+
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-netty</artifactId>
+            <version>${mockServerVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-junit-rule</artifactId>
+            <version>${mockServerVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-client-java</artifactId>
+            <version>${mockServerVersion}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
     <repositories>
         <repository>
             <id>Central</id>
@@ -129,12 +202,4 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-    <distributionManagement>
-        <repository>
-            <id>exchange-repository</id>
-            <name>Corporate Repository</name>
-            <url>https://maven.anypoint.mulesoft.com/api/v1/organizations/f2ea2cb4-c600-4bb5-88e8-e952ff5591ee/maven</url>
-            <layout>default</layout>
-        </repository>
-    </distributionManagement>
 </project>
