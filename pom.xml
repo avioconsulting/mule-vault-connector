@@ -24,12 +24,16 @@
         <testContainersVersion>1.14.3</testContainersVersion>
         <bouncyCastleVersion>1.60</bouncyCastleVersion>
         <mule.maven.plugin.version>3.1.6</mule.maven.plugin.version>
-        <munit.version>2.1.4</munit.version>
+        <munit.input.directory>src/test/munit</munit.input.directory>
+        <munit.output.directory>${basedir}/target/test-mule/munit</munit.output.directory>
+        <munit.extensions.maven.plugin.version>1.0.0</munit.extensions.maven.plugin.version>
+        <munit.version>2.2.3</munit.version>
+        <mavenResourcesVersion>3.0.2</mavenResourcesVersion>
     </properties>
 
     <build>
         <plugins>
-            <plugin>
+            <!--plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions>
@@ -60,7 +64,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -79,37 +83,120 @@
                     </execution>
                 </executions>
             </plugin>
-                <plugin>
-                    <groupId>org.mule.tools.maven</groupId>
-                    <artifactId>mule-maven-plugin</artifactId>
-                    <version>${mule.maven.plugin.version}</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>com.mulesoft.munit.tools</groupId>
-                    <artifactId>munit-maven-plugin</artifactId>
-                    <version>${munit.version}</version>
-                    <executions>
-                        <execution>
-                            <id>test</id>
-                            <phase>test</phase>
-                            <goals>
-                                <goal>test</goal>
-                                <goal>coverage-report</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <coverage>
-                            <runCoverage>true</runCoverage>
-                            <formats>
-                                <format>html</format>
-                            </formats>
-                        </coverage>
-                    </configuration>
-                </plugin>
+            <plugin>
+                <groupId>org.mule.tools.maven</groupId>
+                <artifactId>mule-maven-plugin</artifactId>
+                <version>${mule.maven.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mulesoft.munit</groupId>
+                <artifactId>munit-extensions-maven-plugin</artifactId>
+                <version>${munit.extensions.maven.plugin.version}</version>
+                <configuration>
+                    <runtimeVersion>4.2.2</runtimeVersion>
+                    <runtimeConfiguration>
+                        <discoverRuntimes>
+                            <product>EE</product>
+                            <skip>true</skip>
+                        </discoverRuntimes>
+                    </runtimeConfiguration>
+                    <runtimeVersion>4.2.2</runtimeVersion>
+                    <environmentVariables>
+                        <VAULT_PORT>${it-vault.port}</VAULT_PORT>
+                    </environmentVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mulesoft.munit</groupId>
+                        <artifactId>munit-runner</artifactId>
+                        <version>${munit.version}</version>
+                        <classifier>mule-plugin</classifier>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.mulesoft.munit</groupId>
+                        <artifactId>munit-tools</artifactId>
+                        <version>${munit.version}</version>
+                        <classifier>mule-plugin</classifier>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${mavenResourcesVersion}</version>
+                <executions>
+                    <execution>
+                        <id>copy-munit-resources</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${munit.output.directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${munit.input.directory}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.20.1</version>
+                <executions>
+                    <execution>
+                        <id>prepare-it-vault</id>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>vault:1.4.2</name>
+                                    <alias>it-vault</alias>
+                                    <run>
+                                        <capAdd>
+                                            <add>IPC_LOCK</add>
+                                        </capAdd>
+                                        <env>
+                                            <VAULT_DEV_ROOT_TOKEN_ID>test_token</VAULT_DEV_ROOT_TOKEN_ID>
+                                        </env>
+                                        <ports>
+                                            <port>it-vault.port:8200</port>
+                                        </ports>
+                                        <wait>
+                                            <http>
+                                                <url>http://localhost:${it-vault.port}/v1/sys/health</url>
+                                            </http>
+                                            <time>10000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>remove-it-vault</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -234,7 +321,7 @@
         <repository>
             <id>Central</id>
             <name>Central</name>
-            <url>http://repo1.maven.org/maven2/</url>
+            <url>https://repo1.maven.org/maven2/</url>
             <layout>default</layout>
         </repository>
         <repository>
@@ -246,13 +333,13 @@
         <repository>
             <id>mulesoft-releases</id>
             <name>MuleSoft Releases Repository</name>
-            <url>http://repository.mulesoft.org/releases/</url>
+            <url>https://repository.mulesoft.org/releases/</url>
             <layout>default</layout>
         </repository>
         <repository>
             <id>mulesoft-snapshots</id>
             <name>MuleSoft Snapshots Repository</name>
-            <url>http://repository.mulesoft.org/snapshots/</url>
+            <url>https://repository.mulesoft.org/snapshots/</url>
             <layout>default</layout>
         </repository>
     </repositories>
@@ -261,7 +348,7 @@
             <id>mulesoft-release</id>
             <name>mulesoft release repository</name>
             <layout>default</layout>
-            <url>http://repository.mulesoft.org/releases/</url>
+            <url>https://repository.mulesoft.org/releases/</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
