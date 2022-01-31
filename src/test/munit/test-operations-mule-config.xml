@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+        http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+    <vault:config name="configV2" engineVersion="V2">
+        <vault:basic-connection vaultToken="${vault.token}" vaultUrl="${vault.protocol}://${vault.host}:${vault.port}">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password"/>
+            </tls:context>
+        </vault:basic-connection>
+    </vault:config>
+
+    <flow name="getSecretFlow">
+        <vault:get-secret path="/secret/test/mySecret" config-ref="configV2"/>
+    </flow>
+</mule>
+
+

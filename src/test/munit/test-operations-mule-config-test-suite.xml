@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	  xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="test-operations-mule-config-test-suite.xml" />
+	<http:request-config name="http-request-configuration-vault" doc:name="HTTP Request configuration" doc:id="9b6b52cd-723d-42c4-bfd9-58b86d277d25" basePath="/v1" >
+		<http:request-connection host="${vault.host}" port="${vault.port}" protocol="${vault.protocol}"/>
+	</http:request-config>
+	<munit:before-suite name="test-operations-mule-config-test-suiteBefore_Suite" doc:id="da657f36-db8c-4eec-b35a-f74cf5bca8ea" description="Set up initial values">
+		<try doc:name="Try" doc:id="a7c5d560-d381-46b5-9e0e-d38c6d891beb" >
+			<http:request method="POST" doc:name="Store mySecret" doc:id="fa30016d-01b5-4357-b7f7-a3883bc6500a" config-ref="http-request-configuration-vault" path="/secret/data/test/mySecret">
+				<http:body><![CDATA[{
+    "data": {
+        "key1": "value1",
+        "key2": "value2"
+    }
+}]]></http:body>
+				<http:headers><![CDATA[#[output application/json
+---
+{
+	"X-Vault-Token": "test_token",
+	"Content-Type": "text/plain"
+}]]]></http:headers>
+			</http:request>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1efaf46f-6732-4028-8b0f-2ee64201d655" >
+					<logger level="ERROR" doc:name="Logger" doc:id="383f11d2-0a2e-4b18-bbd9-f78594dbea71" message="#[error.description]"/>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</munit:before-suite>
+	<munit:test name="test-operations-mule-config-test-suite-getSecretFlowTest" doc:id="9f53ea4d-06f1-4031-9a04-ab0a10fe885a" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlow" doc:id="3d660af7-fe93-4d82-a336-8806440ed89f" name="getSecretFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert key1 field" doc:id="a3752817-9061-4896-906e-4f2aceadc725" actual="#[payload.data.key1]" expected="value1" message="#['Key1 field should have the value value1, but got $(payload.data.key1)']"/>
+		</munit:validation>
+	</munit:test>
+</mule>
