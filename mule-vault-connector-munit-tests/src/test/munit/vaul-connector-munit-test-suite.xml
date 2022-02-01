@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="vaul-connector-munit-test-suite.xml" />
+	<munit:test name="new-test-suite-simplemunitFlowTest" description="Test" doc:id="6f823b24-07b3-456d-86df-3c5ce532f2f5" >
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to simplemunitFlow" doc:id="30dc3cd0-b204-44c8-b4b8-34a9ad73feea" name="simplemunitFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="c41b7281-2bb5-4696-872e-e9c4fef425e7" expression="#[payload]" is='#[MunitTools::matches("simple response")]' message="Response bad"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="vaul-connector-munit-test-suite-vault-connector-get-secret-test" doc:id="c61d5d31-919f-40c8-813b-6326edf5d749" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="a0a1445f-21ce-4178-b6a3-5a125dfbb920" processor="vault:get-secret">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Get secret" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="/v1/secret/data/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to vault-connector-get-secret" doc:id="3b8581b8-e19b-4b7e-b8f3-5cd99d4402ea" name="vault-connector-get-secret"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="07b7061e-54fc-41c5-a8fb-a6a41b299967" is="#[MunitTools::containsString('test_value1')]" expression="#[write(payload, 'application/json')]"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="test-mule-proxy-config-test-suite.xml" />
+	<munit:test name="test-mule-proxy-config-test-suite-getSecretFlowTrustStore-proxyTest" doc:id="e50be81c-76ae-47d7-9fc7-51e27b0bcdd0" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="994ff989-08d7-4974-96f0-4024fecb7db6" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowTrustStore-proxy" doc:id="c12519ca-778b-4cca-9eb9-78abe3fe64a8" name="getSecretFlowTrustStore-proxy"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="a183a8fe-df5f-4b1d-96bc-cbb3cb40ac59" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-mule-proxy-config-test-suite-getSecretFlowJksConfig-proxyTest" doc:id="793c809c-baa7-4cb3-9376-588508efb19e" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="975ce6f1-42d2-4395-85d6-601632d2fad0" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowJksConfig-proxy" doc:id="2c7bbcba-a4f7-47cf-854f-7ed3e2dae067" name="getSecretFlowJksConfig-proxy"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="e16f5f66-b552-47fb-a31a-1e5d450a4d8e" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-mule-proxy-config-test-suite-getSecretFlowEc2Config-proxyTest" doc:id="2780031e-a611-4291-8cf5-575315b07d55" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="f6170b7e-8328-42cf-a845-b874ccab9f74" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowEc2Config-proxy" doc:id="b40fc57e-344e-4e95-bcf9-bd8a950e3b7e" name="getSecretFlowEc2Config-proxy"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="6a88094d-cc6e-4c2b-b36f-ba4ecc5c2a3f" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-mule-proxy-config-test-suite-getSecretFlowIamConfig-proxyTest" doc:id="182e9a3f-4b93-4ed1-a1cd-2c024719b9cc" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="07705c8d-1d03-4b97-bc02-700c79c627b3" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowIamConfig-proxy" doc:id="7863741c-4a9a-4fe6-bc9f-b5792d221f79" name="getSecretFlowIamConfig-proxy"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="4c2f87f1-500a-418c-952b-e9f81fdfd409" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

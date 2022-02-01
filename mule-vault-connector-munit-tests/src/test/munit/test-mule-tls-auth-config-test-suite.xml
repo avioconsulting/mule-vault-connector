@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="test-mule-tls-auth-config-test-suite.xml" />
+	<munit:test name="test-mule-tls-auth-config-test-suite-getSecretFlowTrustStoreTest" doc:id="8793afde-de12-488c-be37-c957033c1d60" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowTrustStore" doc:id="3185f6a2-18e5-4428-b399-8bcd3dc75338" name="getSecretFlowTrustStore"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert key1 field" doc:id="5670507f-c13c-4629-b9ea-23a8bb7c505e" actual="#[payload.data.key1]" expected="value1" message="#['Key1 field should have the value value1, but got $(payload.data.key1)']" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-mule-tls-auth-config-test-suite-getSecretFlowJksConfigTest" doc:id="4fa2d215-9596-4bfe-8900-e4bd6f6255d7" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowJksConfig" doc:id="f18dd87b-0521-424d-8f0f-ac9d75c9d8b3" name="getSecretFlowJksConfig"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="15ff8439-1548-44a5-818e-19f02769ee57" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

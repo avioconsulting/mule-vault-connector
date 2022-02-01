@@ -1,0 +1,33 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+
+    <vault:config name="basicTrustStoreAuthConfig" >
+        <vault:basic-connection vaultToken="${vault.token}" vaultUrl="${vaultUrl}">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:basic-connection>
+    </vault:config>
+
+    <vault:config name="jksConfig" >
+        <vault:tls-connection vaultUrl="${vaultUrl}">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+                <tls:key-store type="jks" path="mockserver/client.jks" keyPassword="password" password="password" />
+            </tls:context>
+        </vault:tls-connection>
+    </vault:config>
+
+    <flow name="getSecretFlowTrustStore">
+        <vault:get-secret config-ref="basicTrustStoreAuthConfig" path="secret/data/test/mySecret"/>
+    </flow>
+
+    <flow name="getSecretFlowJksConfig">
+        <vault:get-secret config-ref="jksConfig" path="secret/data/test/mysecret"/>
+    </flow>
+
+</mule>

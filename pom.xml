@@ -24,7 +24,7 @@
         <testContainersVersion>1.14.3</testContainersVersion>
         <bouncyCastleVersion>1.60</bouncyCastleVersion>
         <mule.maven.plugin.version>3.5.2</mule.maven.plugin.version>
-        <munit.input.directory>src/test/munit</munit.input.directory>
+        <munit.input.directory>${basedir}/mule-vault-connector-munit-tests</munit.input.directory>
         <munit.output.directory>${basedir}/target/test-mule/munit</munit.output.directory>
         <munit.extensions.maven.plugin.version>1.1.2</munit.extensions.maven.plugin.version>
         <munit.version>2.3.6</munit.version>
@@ -107,7 +107,11 @@
                             <outputDirectory>${munit.output.directory}</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${munit.input.directory}</directory>
+                                    <directory>${munit.input.directory}/src/main/mule</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${munit.input.directory}/src/test/munit</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>

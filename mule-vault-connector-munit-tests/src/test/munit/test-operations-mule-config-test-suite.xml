@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="test-operations-mule-config-test-suite.xml" />
+	<http:request-config name="http-request-configuration-vault" doc:name="HTTP Request configuration" doc:id="9b6b52cd-723d-42c4-bfd9-58b86d277d25" basePath="/v1" >
+		<http:request-connection host="${vault.host}" port="${vault.port}" protocol="${vault.protocol}"/>
+	</http:request-config>
+	<munit:before-suite name="test-operations-mule-config-test-suiteBefore_Suite" doc:id="da657f36-db8c-4eec-b35a-f74cf5bca8ea" description="Set up initial values">
+		<http:request method="POST" doc:name="Store mySecret" doc:id="fa30016d-01b5-4357-b7f7-a3883bc6500a" config-ref="http-request-configuration-vault" path="/secret/data/test/mySecret">
+			<http:body><![CDATA[{
+    "data": {
+        "key1": "value1",
+        "key2": "value2"
+    }
+}]]></http:body>
+			<http:headers><![CDATA[#[output application/json
+---
+{
+	"X-Vault-Token": "test_token",
+	"Content-Type": "text/plain"
+}]]]></http:headers>
+		</http:request>
+		<flow-ref doc:name="test-operations-mule-config-test-suite-enable-transit" doc:id="5a8e7b73-59af-4100-ab4e-fa1ecbe01edb" name="test-operations-mule-config-test-suite-enable-transit"/>
+	</munit:before-suite>
+	<sub-flow name="test-operations-mule-config-test-suite-enable-transit" doc:id="06cd76e7-c7fe-4916-bd09-224a5454e754" >
+		<http:request method="GET" doc:name="List mounts" doc:id="7f1f40da-7975-43fd-bf52-03efe505c2bc" config-ref="http-request-configuration-vault" path="/sys/mounts">
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	"X-Vault-Token": "test_token",
+}]]]></http:headers>
+		</http:request>
+		<choice doc:name="is transit enabled?" doc:id="51f4a77b-855f-449b-8927-d479d4bc6a3c" >
+			<when expression="#[payload.'transit/'?]">
+				<logger level="INFO" doc:name="Logger" doc:id="5a979a1e-cc4f-44df-8363-b59172b4e3b6" message="Transit already enabled"/>
+			</when>
+			<otherwise >
+				<http:request method="POST" doc:name="Enable transit" doc:id="d809536e-0363-4b0d-8d17-2ae5eeae40b2" config-ref="http-request-configuration-vault" path="/sys/mounts/transit" outputMimeType="text/plain">
+			<http:body><![CDATA[{
+    "type": "transit"
+}]]></http:body>
+			<http:headers><![CDATA[#[output application/json
+---
+{
+	"X-Vault-Token": "test_token",
+	"Content-Type": "text/plain"
+}]]]></http:headers>
+		</http:request>
+				<http:request method="POST" doc:name="Create key test-key" doc:id="8abec5ae-7d45-4bed-b164-d282d78b1a19" config-ref="http-request-configuration-vault" path="/transit/keys/testKey" >
+					<http:headers ><![CDATA[#[output application/json
+---
+{
+	"X-Vault-Token": "test_token",
+}]]]></http:headers>
+				</http:request>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<munit:test name="test-operations-mule-config-test-suite-getSecretFlowTest" doc:id="9f53ea4d-06f1-4031-9a04-ab0a10fe885a" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlow" doc:id="3d660af7-fe93-4d82-a336-8806440ed89f" name="getSecretFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert key1 field" doc:id="a3752817-9061-4896-906e-4f2aceadc725" actual="#[payload.data.key1]" expected="value1" message="#['Key1 field should have the value value1, but got $(payload.data.key1)']"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-operations-mule-config-test-suite-missingFlowTest" doc:id="fbe40661-fe34-4aaa-afa8-a52639e6b4a6" description="Test">
+		<munit:execution >
+			<set-variable value="#[false]" doc:name="secretNotFound" doc:id="b2748349-212d-4708-9c07-6e387969dff7" variableName="secretNotFound" />
+			<try doc:name="Try" doc:id="fbef792f-96dd-4ab7-9bd7-79b01531a484" >
+				<flow-ref doc:name="Flow-ref to missingFlow" doc:id="c2700640-7659-4a36-a529-05103ed2e2ab" name="missingFlow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ca1ef9a8-78b0-42c0-b89f-7a9e3d8e696d" type="VAULT:SECRET_NOT_FOUND">
+						<set-variable value="#[true]" doc:name="secretNotFound" doc:id="783d84b0-c75e-4654-bd3a-cd6bedb282b1" variableName="secretNotFound"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert secretNotFound var is true" doc:id="2c1c3683-9312-4ea7-aeb2-f26891f31f59" actual="#[vars.secretNotFound]" expected="#[true]" message="secretNotFound var should be true"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-operations-mule-config-test-suite-dynamicSecretFlowTest" doc:id="77c62f6e-b5f7-444e-ae6e-90ad10601119" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="758a0083-6088-4f03-9c76-006033a2c32d" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="database/creds/company-role" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "data": {&#10;        "username": "dynUser",&#10;        "password": "dynpassword"&#10;    }&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to dynamicSecretFlow" doc:id="b7508a8a-2f12-4ced-9f63-3c6e5bcafafe" name="dynamicSecretFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="5f74daba-5641-4fe7-9ab2-e3f6c1fcd0ac" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('dynUser')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-operations-mule-config-test-suite-writeSecretFlowTest" doc:id="ae78f2dd-7d1c-476f-816a-d997e8dd1913" description="Test">
+		<munit:behavior >
+			<munit-tools:spy doc:name="Spy write-secret connector" doc:id="2645ded4-51ef-4217-858d-df51efe453e8" processor="vault:write-secret">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/test/mule-write" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:after-call >
+					<munit-tools:store doc:name="writeSecretResponse" doc:id="2c1ceef9-0623-4f7f-b1a6-c58b176d5e99" key="writeSecretResponse"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to writeSecretFlow" doc:id="e0354a2c-a85e-418e-83c1-b9f95a5e8d49" name="writeSecretFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:remove doc:name="writeSecretResponse" doc:id="27cf577f-f531-4fb3-af27-aa1b30af8a3b" key="writeSecretResponse" target="writeSecretResponse"/>
+			<munit-tools:assert-that doc:name="Assert created_time field is not null" doc:id="cdd3f909-ea56-4f12-b183-1a61775e11bc" expression="#[vars.writeSecretResponse.created_time]" is="#[MunitTools::notNullValue()]" />
+			<munit-tools:assert-equals doc:name="Assert name field is the expected" doc:id="581280c3-12cd-4a97-9ceb-8732758d4319" actual="#[payload.data.name]" expected="#['test']"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-operations-mule-config-test-suite-encryptDataFlowTest" doc:id="507f045b-4594-471f-b59c-6c8d48010507" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to encryptDataFlow" doc:id="08338b85-1bfa-4a35-a65f-67097778d8b4" name="encryptDataFlow"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert the payload starts with vault:v1" doc:id="d6bf6a3a-e8e6-48ea-bfeb-8cbc6043186a" expression="#[payload]" is="#[MunitTools::startsWith('vault:v1:')]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-operations-mule-config-test-suite-decryptDataFlowTest" doc:id="d9d08ab2-92b1-4b50-9c6d-1ddba6fb2e68" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to decryptDataFlow" doc:id="a825dca7-3f61-4cfc-83e4-e56e81dc4b75" name="decryptDataFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert decrypt result is the expected" doc:id="69fdc3a7-9b6f-44e5-988a-f2b9e8636451" actual="#[payload]" expected="#['VGhpcyBpcyBhIHRlc3Q=']"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-operations-mule-config-test-suite-reEncryptFlowTest" doc:id="3fadbc87-ed7c-4f6d-aa2c-8b97c9f9d5a4" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to reEncryptFlow" doc:id="f73c8c71-ac33-4fd8-b7b4-8783d8b2c586" name="reEncryptFlow"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert reEncrypt method returns a string that starts with vault:v1" doc:id="5429137e-6f0d-4ac8-8b74-343bfcbabc61" expression="#[payload]" is="#[MunitTools::startsWith('vault:v1:')]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

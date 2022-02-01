@@ -1,0 +1,75 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+
+
+    <vault:proxy name="gproxy" host="${proxyHost}" port="${proxyPort}" username="test" password="password" />
+    <vault:ntlm-proxy name="ntlmProxy" ntlmDomain="my-ntlm.domain" host="${proxyHost}" port="${proxyPort}" />
+
+    <vault:config name="basicTrustStoreConfig" >
+        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="https://myvault.com:8200">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+            <vault:proxy-config>
+                <vault:proxy host="${proxyHost}" port="${proxyPort}" username="test" password="password" />
+            </vault:proxy-config>
+        </vault:basic-connection>
+    </vault:config>
+
+    <vault:config name="sharedTlsConfig" >
+        <vault:tls-connection vaultUrl="https://myvault.com:8200" proxyConfig="gproxy">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+                <tls:key-store type="jks" path="mockserver/client.jks" keyPassword="password" password="password" />
+            </tls:context>
+        </vault:tls-connection>
+    </vault:config>
+
+    <vault:config name="ec2Config" >
+        <vault:ec2-connection vaultUrl="https://myvault.com:8200" awsAuthMount="aws" vaultRole="ec2" useInstanceMetadata="false" identity="test" signature="test" proxyConfig="ntlmProxy">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:ec2-connection>
+    </vault:config>
+
+    <vault:config name="iamConfig" >
+        <vault:iam-connection vaultUrl="https://myvault.com:8200"
+                              awsAuthMount="aws"
+                              vaultRole="ec2"
+                              iamRequestUrl="aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8="
+                              iamRequestBody="QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ=="
+                              iamRequestHeaders="X-Vault-AWS-IAM-Server-ID=dev.vault.avioconsulting.com"
+                              proxyConfig="ntlmProxy">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:iam-connection>
+    </vault:config>
+
+
+    <flow name="getSecretFlowTrustStore-proxy">
+        <vault:get-secret config-ref="basicTrustStoreConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="getSecretFlowJksConfig-proxy">
+        <vault:get-secret config-ref="sharedTlsConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+    <flow name="getSecretFlowEc2Config-proxy">
+        <vault:get-secret config-ref="ec2Config" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+    <flow name="getSecretFlowIamConfig-proxy">
+        <vault:get-secret config-ref="iamConfig" path="secret/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+
+</mule>

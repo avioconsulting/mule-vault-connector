@@ -1,0 +1,34 @@
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd
+          http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+
+    <vault:config name="ec2-config" >
+        <vault:ec2-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" identity="test" signature="test">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:ec2-connection>
+    </vault:config>
+
+    <vault:config name="ec2-config-metadata" >
+        <vault:ec2-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" useInstanceMetadata="true">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:ec2-connection>
+    </vault:config>
+
+	<flow name="getSecretFlow-ec2">
+        <vault:get-secret config-ref="ec2-config" path="secret/data/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+    <flow name="getSecretMDSFlow-ec2">
+        <vault:get-secret config-ref="ec2-config-metadata" path="secret/data/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+</mule>
