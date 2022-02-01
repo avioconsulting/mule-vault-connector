@@ -23,12 +23,13 @@
         <gsonVersion>2.8.6</gsonVersion>
         <testContainersVersion>1.14.3</testContainersVersion>
         <bouncyCastleVersion>1.60</bouncyCastleVersion>
-        <mule.maven.plugin.version>3.1.6</mule.maven.plugin.version>
+        <mule.maven.plugin.version>3.5.2</mule.maven.plugin.version>
         <munit.input.directory>src/test/munit</munit.input.directory>
         <munit.output.directory>${basedir}/target/test-mule/munit</munit.output.directory>
-        <munit.extensions.maven.plugin.version>1.0.0</munit.extensions.maven.plugin.version>
-        <munit.version>2.2.3</munit.version>
+        <munit.extensions.maven.plugin.version>1.1.2</munit.extensions.maven.plugin.version>
+        <munit.version>2.3.6</munit.version>
         <mavenResourcesVersion>3.0.2</mavenResourcesVersion>
+        <app.runtime>4.3.0</app.runtime>
     </properties>
 
     <build>
@@ -96,17 +97,16 @@
                 <artifactId>munit-extensions-maven-plugin</artifactId>
                 <version>${munit.extensions.maven.plugin.version}</version>
                 <configuration>
-                    <runtimeVersion>4.2.2</runtimeVersion>
+                    <runtimeVersion>${app.runtime}</runtimeVersion>
                     <runtimeConfiguration>
                         <discoverRuntimes>
                             <product>EE</product>
                             <skip>true</skip>
                         </discoverRuntimes>
                     </runtimeConfiguration>
-                    <runtimeVersion>4.2.2</runtimeVersion>
-                    <environmentVariables>
-                        <VAULT_PORT>${it-vault.port}</VAULT_PORT>
-                    </environmentVariables>
+                    <systemPropertyVariables>
+                        <vault.port>${vault.port}</vault.port>
+                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
@@ -159,7 +159,7 @@
                 <version>0.20.1</version>
                 <executions>
                     <execution>
-                        <id>prepare-it-vault</id>
+                        <id>start-vault</id>
                         <goals>
                             <goal>start</goal>
                         </goals>
@@ -167,7 +167,7 @@
                             <images>
                                 <image>
                                     <name>vault:1.4.2</name>
-                                    <alias>it-vault</alias>
+                                    <alias>vault</alias>
                                     <run>
                                         <capAdd>
                                             <add>IPC_LOCK</add>
@@ -176,11 +176,11 @@
                                             <VAULT_DEV_ROOT_TOKEN_ID>test_token</VAULT_DEV_ROOT_TOKEN_ID>
                                         </env>
                                         <ports>
-                                            <port>it-vault.port:8200</port>
+                                            <port>vault.port:8200</port>
                                         </ports>
                                         <wait>
                                             <http>
-                                                <url>http://localhost:${it-vault.port}/v1/sys/health</url>
+                                                <url>http://localhost:${vault.port}/v1/sys/health</url>
                                             </http>
                                             <time>10000</time>
                                         </wait>
@@ -190,7 +190,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>remove-it-vault</id>
+                        <id>stop-vault</id>
                         <goals>
                             <goal>stop</goal>
                         </goals>
@@ -293,14 +293,14 @@
         <dependency>
             <groupId>com.mulesoft.munit</groupId>
             <artifactId>munit-runner</artifactId>
-            <version>2.1.4</version>
+            <version>${munit.version}</version>
             <classifier>mule-plugin</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.mulesoft.munit</groupId>
             <artifactId>munit-tools</artifactId>
-            <version>2.1.4</version>
+            <version>${munit.version}</version>
             <classifier>mule-plugin</classifier>
             <scope>test</scope>
         </dependency>
@@ -352,6 +352,12 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>mulesoft-ee-releases</id>
+            <name>MuleSoft EE Releases Repository</name>
+            <url>https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/</url>
+            <layout>default</layout>
         </pluginRepository>
     </pluginRepositories>
 </project>
