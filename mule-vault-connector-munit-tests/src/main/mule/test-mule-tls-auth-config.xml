@@ -6,7 +6,7 @@
 
 
     <vault:config name="basicTrustStoreAuthConfig" >
-        <vault:basic-connection vaultToken="${vault.token}" vaultUrl="${vaultUrl}">
+        <vault:basic-connection vaultToken="${vault.token}" vaultUrl="${vault.protocol}://${vault.host}:${vault.port}">
             <tls:context>
                 <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
             </tls:context>
@@ -14,7 +14,7 @@
     </vault:config>
 
     <vault:config name="jksConfig" >
-        <vault:tls-connection vaultUrl="${vaultUrl}">
+        <vault:tls-connection vaultUrl="${vault.protocol}://${vault.host}:${vault.port}">
             <tls:context>
                 <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
                 <tls:key-store type="jks" path="mockserver/client.jks" keyPassword="password" password="password" />

@@ -5,7 +5,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 	<vault:config name="vault-config-default" doc:name="Vault Config" doc:id="a00666b8-49f2-444f-8bfe-32595cc0dd42" >
-		<vault:basic-connection vaultUrl="${vaultUrl}" vaultToken="MOCK_TOKEN" />
+		<vault:basic-connection vaultUrl="${vault.protocol}://${vault.host}:${vault.port}" vaultToken="${vault.token}" />
 	</vault:config>
 	<configuration-properties doc:name="Configuration properties" doc:id="3077b13d-d3c9-472c-a949-bca6d34d9352" file="mockserver/config.properties" />
 </mule>

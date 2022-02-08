@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
     <vault:config name="configV2" engineVersion="V2">
         <vault:basic-connection vaultToken="${vault.token}" vaultUrl="${vault.protocol}://${vault.host}:${vault.port}">
             <tls:context>
-                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password"/>
+                <tls:trust-store type="jks" path="mockserver/truststore-munit.jks" password="password"/>
             </tls:context>
         </vault:basic-connection>
     </vault:config>
@@ -23,7 +23,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
     <vault:config name="configV1" >
         <vault:basic-connection vaultToken="${vault.token}" vaultUrl="${vault.protocol}://${vault.host}:${vault.port}">
             <tls:context>
-                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+                <tls:trust-store type="jks" path="mockserver/truststore-munit.jks" password="password" />
             </tls:context>
         </vault:basic-connection>
     </vault:config>
