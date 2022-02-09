@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
-	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	  xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	  xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
 		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 	<munit:config name="test-operations-mule-config-test-suite.xml" />
 	<http:request-config name="http-request-configuration-vault" doc:name="HTTP Request configuration" doc:id="9b6b52cd-723d-42c4-bfd9-58b86d277d25" basePath="/v1" >
-		<http:request-connection host="${vault.host}" port="${vault.port}" protocol="${vault.protocol}"/>
+		<http:request-connection host="${vault.host}" port="${vault.port}" protocol="${vault.protocol}">
+			<tls:context >
+				<tls:trust-store type="jks" path="mockserver/truststore-munit.jks" password="password"/>
+			</tls:context>
+		</http:request-connection>
 	</http:request-config>
 	<munit:before-suite name="test-operations-mule-config-test-suiteBefore_Suite" doc:id="da657f36-db8c-4eec-b35a-f74cf5bca8ea" description="Set up initial values">
 		<http:request method="POST" doc:name="Store mySecret" doc:id="fa30016d-01b5-4357-b7f7-a3883bc6500a" config-ref="http-request-configuration-vault" path="/secret/data/test/mySecret">
@@ -43,16 +48,16 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			</when>
 			<otherwise >
 				<http:request method="POST" doc:name="Enable transit" doc:id="d809536e-0363-4b0d-8d17-2ae5eeae40b2" config-ref="http-request-configuration-vault" path="/sys/mounts/transit" outputMimeType="text/plain">
-			<http:body><![CDATA[{
+					<http:body><![CDATA[{
     "type": "transit"
 }]]></http:body>
-			<http:headers><![CDATA[#[output application/json
+					<http:headers><![CDATA[#[output application/json
 ---
 {
 	"X-Vault-Token": "test_token",
 	"Content-Type": "text/plain"
 }]]]></http:headers>
-		</http:request>
+				</http:request>
 				<http:request method="POST" doc:name="Create key test-key" doc:id="8abec5ae-7d45-4bed-b164-d282d78b1a19" config-ref="http-request-configuration-vault" path="/transit/keys/testKey" >
 					<http:headers ><![CDATA[#[output application/json
 ---
