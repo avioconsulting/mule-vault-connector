@@ -1,5 +1,8 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.algorithm;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,6 +14,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AWSV4SignProperties {
+
+    private static final Logger logger = LoggerFactory.getLogger(AWSV4SignProperties.class);
 
     private static final String DEFAULT_HOST = "sts.amazonaws.com";
     private static final String DEFAULT_SERVICE_NAME = "sts";
@@ -62,6 +67,8 @@ public class AWSV4SignProperties {
             canonicalUri = uri.getPath();
             queryParameters = splitQuery(uri.getQuery());
         } catch (URISyntaxException e) {
+            logger.error(String.format("Failed to parse URL and extract the properties. URL: %s", url), e);
+            logger.warn("Setting all variables to the default values");
             host = DEFAULT_HOST;
             canonicalUri = DEFAULT_CANONICAL_URI;
             queryParameters = Collections.emptyMap();
@@ -76,6 +83,7 @@ public class AWSV4SignProperties {
         return Arrays.stream(query.
                         split("&")).
                 map(this::splitQueryParameter).
+                filter(q -> q != null).
                 collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue));
     }
 
@@ -83,12 +91,17 @@ public class AWSV4SignProperties {
         final int idx = it.indexOf("=");
         final String key = idx > 0 ? it.substring(0, idx) : it;
         final String value = idx > 0 && it.length() > idx + 1 ? it.substring(idx + 1) : null;
+        if (key == null || value == null) {
+            logger.warn(String.format("Query parameter is not set properly. Key: %s, Value: %s", key, value));
+            return null;
+        }
         try {
             return new AbstractMap.SimpleImmutableEntry<>(
                     URLDecoder.decode(key, "UTF-8"),
                     URLDecoder.decode(value, "UTF-8")
             );
         } catch (UnsupportedEncodingException e) {
+            logger.error(String.format("Failed to create map record for query parameter: %s", it), e);
             return null;
         }
     }
