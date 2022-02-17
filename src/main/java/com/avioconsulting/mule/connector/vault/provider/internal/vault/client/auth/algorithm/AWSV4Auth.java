@@ -36,8 +36,8 @@ public class AWSV4Auth {
         private String serviceName;
         private String httpMethodName;
         private String canonicalURI;
-        private TreeMap<String, String> queryParametes;
-        private TreeMap<String, String> awsHeaders;
+        private Map<String, String> queryParametes;
+        private Map<String, String> awsHeaders;
         private String payload;
         private ZonedDateTime dateTime;
 
@@ -66,12 +66,12 @@ public class AWSV4Auth {
             return this;
         }
 
-        public Builder queryParametes(TreeMap<String, String> queryParametes) {
+        public Builder queryParametes(Map<String, String> queryParametes) {
             this.queryParametes = queryParametes;
             return this;
         }
 
-        public Builder awsHeaders(TreeMap<String, String> awsHeaders) {
+        public Builder awsHeaders(Map<String, String> awsHeaders) {
             this.awsHeaders = awsHeaders;
             return this;
         }
@@ -97,8 +97,8 @@ public class AWSV4Auth {
     private String serviceName;
     private String httpMethodName;
     private String canonicalURI;
-    private TreeMap<String, String> queryParametes;
-    private TreeMap<String, String> awsHeaders;
+    private Map<String, String> queryParametes;
+    private Map<String, String> awsHeaders;
     private String payload;
 
     /* Other variables */
