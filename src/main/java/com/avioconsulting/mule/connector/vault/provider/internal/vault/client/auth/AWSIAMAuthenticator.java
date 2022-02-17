@@ -75,19 +75,16 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
 
         TreeMap<String, String> awsHeaders = new TreeMap();
         awsHeaders.put("host", DEFAULT_HOST);
-        if (iamServerId != null && !iamServerId.isEmpty()) {
-            awsHeaders.put("x-vault-aws-iam-server-id", iamServerId);
-        }
+        getIamServerId().ifPresent(serverId -> awsHeaders.put("x-vault-aws-iam-server-id", serverId));
 
         AWSV4Auth awsV4Auth = new AWSV4Auth.Builder(iamAccessKey, iamSecretKey)
                 .regionName(DEFAULT_REGION)
                 .serviceName(DEFAULT_SERVICE_NAME)
                 .httpMethodName(DEFAULT_METHOD)
                 .canonicalURI(DEFAULT_CANONICAL_URI) //end point
-                .queryParametes(null) //query parameters if any
-                .awsHeaders(awsHeaders) //aws header parameters
-                .payload(DEFAULT_PAYLOAD) // payload if any
-                .debug() // turn on the debug mode
+                .queryParametes(null)
+                .awsHeaders(awsHeaders)
+                .payload(DEFAULT_PAYLOAD)
                 .build();
 
         String authorization = awsV4Auth.getHeaders().get("Authorization");
@@ -96,6 +93,7 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
         headers.put("Authorization", authorization);
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("X-Amz-Date", awsV4Auth.getxAmzDate());
+        getIamServerId().ifPresent(serverId -> headers.put("x-vault-aws-iam-server-id", serverId));
         if (iamServerId != null && !iamServerId.isEmpty()) {
             headers.put("x-vault-aws-iam-server-id", iamServerId);
         }
@@ -103,13 +101,10 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
         String textOfHeaders = gson.toJson(headers);
 
         return textOfHeaders;
-
     }
 
     public Optional<String> getIamServerId() {
-
-        return Optional.of(iamServerId);
-
+        return Optional.ofNullable(iamServerId).filter(s -> !s.trim().isEmpty());
     }
 
 }

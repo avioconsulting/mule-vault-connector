@@ -1,5 +1,8 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.algorithm;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
@@ -11,14 +14,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Example: Signing AWS Requests with Signature Version 4 in Java.
+ * Signing AWS Requests with Signature Version 4 in Java.
  *
  * @reference: http://docs.aws.amazon.com/general/latest/gr/sigv4_signing.html
- * @author javaQuery
- * @date 19th January, 2016
- * @Github: https://github.com/javaquery/Examples
+ * @author AVIO Consulting
+ * @date February 16th, 2022
  */
 public class AWSV4Auth {
+
+    private static final Logger logger = LoggerFactory.getLogger(AWSV4Auth.class);
 
     private AWSV4Auth() {
     }
@@ -34,7 +38,6 @@ public class AWSV4Auth {
         private TreeMap<String, String> queryParametes;
         private TreeMap<String, String> awsHeaders;
         private String payload;
-        private boolean debug = false;
 
         public Builder(String accessKeyID, String secretAccessKey) {
             this.accessKeyID = accessKeyID;
@@ -76,11 +79,6 @@ public class AWSV4Auth {
             return this;
         }
 
-        public Builder debug() {
-            this.debug = true;
-            return this;
-        }
-
         public AWSV4Auth build() {
             return new AWSV4Auth(this);
         }
@@ -95,7 +93,6 @@ public class AWSV4Auth {
     private TreeMap<String, String> queryParametes;
     private TreeMap<String, String> awsHeaders;
     private String payload;
-    private boolean debug = false;
 
     /* Other variables */
     private final String HMACAlgorithm = "AWS4-HMAC-SHA256";
@@ -117,7 +114,6 @@ public class AWSV4Auth {
         queryParametes = builder.queryParametes;
         awsHeaders = builder.awsHeaders;
         payload = builder.payload;
-        debug = builder.debug;
 
         /* Get current timestamp value.(UTC) */
         xAmzDate = getTimeStamp();
@@ -133,45 +129,6 @@ public class AWSV4Auth {
 
     public String getxAmzDate() {
         return xAmzDate;
-    }
-
-    /**
-     * Task 4: Add the Signing Information to the Request. We'll return Map of
-     * all headers put this headers in your request.
-     *
-     * @return
-     */
-    private void processSignature() {
-        awsHeaders.put("x-amz-date", xAmzDate);
-
-        /* Execute Task 1: Create a Canonical Request for Signature Version 4. */
-        String canonicalURL = prepareCanonicalRequest();
-
-        /* Execute Task 2: Create a String to Sign for Signature Version 4. */
-        String stringToSign = prepareStringToSign(canonicalURL);
-
-        /* Execute Task 3: Calculate the AWS Signature Version 4. */
-        String signature = calculateSignature(stringToSign);
-
-        if (signature != null) {
-            Map<String, String> header = new HashMap(0);
-            header.put("x-amz-date", xAmzDate);
-            header.put("Authorization", buildAuthorizationString(signature));
-
-            if (debug) {
-                System.out.println("##Signature:\n" + signature);
-                System.out.println("##Header:");
-                for (Map.Entry<String, String> entrySet : header.entrySet()) {
-                    System.out.println(entrySet.getKey() + " = " + entrySet.getValue());
-                }
-                System.out.println("================================");
-            }
-            headers = header;
-        } else {
-            if (debug) {
-                System.out.println("##Signature:\n" + signature);
-            }
-        }
     }
 
     /**
@@ -229,9 +186,7 @@ public class AWSV4Auth {
         payload = payload == null ? "" : payload;
         canonicalURL.append(generateHex(payload));
 
-        if (debug) {
-            System.out.println("##Canonical Request:\n" + canonicalURL.toString());
-        }
+        logger.debug("##Canonical Request:\n" + canonicalURL.toString());
 
         return canonicalURL.toString();
     }
@@ -257,9 +212,7 @@ public class AWSV4Auth {
         /* Step 2.4 Append the hash of the canonical request that you created in Task 1: Create a Canonical Request for Signature Version 4. */
         stringToSign += generateHex(canonicalURL);
 
-        if (debug) {
-            System.out.println("##String to sign:\n" + stringToSign);
-        }
+        logger.debug("##String to sign:\n" + stringToSign);
 
         return stringToSign;
     }
@@ -282,10 +235,47 @@ public class AWSV4Auth {
             String strHexSignature = bytesToHex(signature);
             return strHexSignature;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Exception calculating signature", ex);
         }
         return null;
     }
+
+    /**
+     * Task 4: Add the Signing Information to the Request. We'll return Map of
+     * all headers put this headers in your request.
+     *
+     * @return
+     */
+    private void processSignature() {
+        awsHeaders.put("x-amz-date", xAmzDate);
+
+        /* Execute Task 1: Create a Canonical Request for Signature Version 4. */
+        String canonicalURL = prepareCanonicalRequest();
+
+        /* Execute Task 2: Create a String to Sign for Signature Version 4. */
+        String stringToSign = prepareStringToSign(canonicalURL);
+
+        /* Execute Task 3: Calculate the AWS Signature Version 4. */
+        String signature = calculateSignature(stringToSign);
+
+        if (signature != null) {
+            Map<String, String> header = new HashMap(0);
+            header.put("x-amz-date", xAmzDate);
+            header.put("Authorization", buildAuthorizationString(signature));
+
+            logger.debug("##Signature:\n" + signature);
+            logger.debug("##Header:");
+            for (Map.Entry<String, String> entrySet : header.entrySet()) {
+                logger.debug(entrySet.getKey() + " = " + entrySet.getValue());
+            }
+            logger.debug("================================");
+            headers = header;
+        } else {
+            logger.debug("##Signature:\n" + signature);
+        }
+    }
+
+
 
     /**
      * Build string for Authorization header.
@@ -314,7 +304,7 @@ public class AWSV4Auth {
             byte[] digest = messageDigest.digest();
             return String.format("%064x", new java.math.BigInteger(1, digest));
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.error("Exception while generating hex from string", e);
         }
         return null;
     }
