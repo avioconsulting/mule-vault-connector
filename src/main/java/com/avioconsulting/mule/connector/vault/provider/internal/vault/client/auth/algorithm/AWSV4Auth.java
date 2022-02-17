@@ -9,8 +9,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -38,6 +39,7 @@ public class AWSV4Auth {
         private TreeMap<String, String> queryParametes;
         private TreeMap<String, String> awsHeaders;
         private String payload;
+        private ZonedDateTime dateTime;
 
         public Builder(String accessKeyID, String secretAccessKey) {
             this.accessKeyID = accessKeyID;
@@ -79,6 +81,11 @@ public class AWSV4Auth {
             return this;
         }
 
+        public Builder dateTime(ZonedDateTime dateTime) {
+            this.dateTime = dateTime;
+            return this;
+        }
+
         public AWSV4Auth build() {
             return new AWSV4Auth(this);
         }
@@ -99,6 +106,7 @@ public class AWSV4Auth {
     private final String aws4Request = "aws4_request";
     private String strSignedHeader;
     private String xAmzDate;
+    private ZonedDateTime currentDateTime;
     private String currentDate;
 
 
@@ -114,6 +122,7 @@ public class AWSV4Auth {
         queryParametes = builder.queryParametes;
         awsHeaders = builder.awsHeaders;
         payload = builder.payload;
+        currentDateTime = builder.dateTime != null ? builder.dateTime : ZonedDateTime.now(ZoneOffset.UTC);
 
         /* Get current timestamp value.(UTC) */
         xAmzDate = getTimeStamp();
@@ -371,9 +380,8 @@ public class AWSV4Auth {
      * @return
      */
     private String getTimeStamp() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));//server timezone
-        return dateFormat.format(new Date());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmssX");
+        return currentDateTime.format(formatter);
     }
 
     /**
@@ -382,9 +390,8 @@ public class AWSV4Auth {
      * @return
      */
     private String getDate() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));//server timezone
-        return dateFormat.format(new Date());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        return currentDateTime.format(formatter);
     }
 
     /**

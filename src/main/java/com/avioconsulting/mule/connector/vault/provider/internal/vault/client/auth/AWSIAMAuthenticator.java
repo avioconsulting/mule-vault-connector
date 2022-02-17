@@ -81,7 +81,7 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
                 .regionName(DEFAULT_REGION)
                 .serviceName(DEFAULT_SERVICE_NAME)
                 .httpMethodName(DEFAULT_METHOD)
-                .canonicalURI(DEFAULT_CANONICAL_URI) //end point
+                .canonicalURI(DEFAULT_CANONICAL_URI)
                 .queryParametes(null)
                 .awsHeaders(awsHeaders)
                 .payload(DEFAULT_PAYLOAD)
