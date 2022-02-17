@@ -39,10 +39,11 @@ public class AWSV4AuthTests {
 
         String authorization = awsV4Auth.getHeaders().get("Authorization");
 
-        System.out.println(authorization);
-        System.out.println(awsV4Auth.getxAmzDate());
-        Assert.assertEquals("20220217T144900Z", awsV4Auth.getxAmzDate());
-        Assert.assertEquals("AWS4-HMAC-SHA256 Credential=FAKEACCESSKEY/20220217/us-east-1/sts/aws4_request,SignedHeaders=host;x-amz-date,Signature=63b5ecc5745df80ac2299da2e084a24362cea27953b4a274c66fa219f234983c", authorization);
+        String expectedAmzDate = "20220217T144900Z";
+        String expectedAuthorization = "AWS4-HMAC-SHA256 Credential=FAKEACCESSKEY/20220217/us-east-1/sts/aws4_request,SignedHeaders=host;x-amz-date,Signature=63b5ecc5745df80ac2299da2e084a24362cea27953b4a274c66fa219f234983c";
+
+        Assert.assertEquals(expectedAmzDate, awsV4Auth.getxAmzDate());
+        Assert.assertEquals(expectedAuthorization, authorization);
 
     }
 
@@ -51,7 +52,7 @@ public class AWSV4AuthTests {
 
         TreeMap<String, String> awsHeaders = new TreeMap();
         awsHeaders.put("host", DEFAULT_HOST);
-        awsHeaders.put("x-vault-aws-iam-server-id", "");
+        awsHeaders.put("x-vault-aws-iam-server-id", "dev.vault.avioconsulting.com");
 
         AWSV4Auth awsV4Auth = new AWSV4Auth.Builder(FAKE_ACCESS_KEY, FAKE_ACCESS_KEY)
                 .regionName(DEFAULT_REGION)
