@@ -63,7 +63,7 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
         return payload.toString();
     }
 
-    private String generateHeaders() {
+    private String generateHeaders() throws VaultException {
 
         AWSV4SignProperties awsV4SignProperties = new AWSV4SignProperties(iamRequestUrl);
 

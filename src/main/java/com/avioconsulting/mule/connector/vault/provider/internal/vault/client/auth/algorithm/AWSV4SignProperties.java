@@ -1,5 +1,6 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.algorithm;
 
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +18,9 @@ public class AWSV4SignProperties {
 
     private static final Logger logger = LoggerFactory.getLogger(AWSV4SignProperties.class);
 
-    private static final String DEFAULT_HOST = "sts.amazonaws.com";
     private static final String DEFAULT_SERVICE_NAME = "sts";
     private static final String DEFAULT_REGION = "us-east-1";
     private static final String DEFAULT_METHOD = "POST";
-    private static final String DEFAULT_PAYLOAD = "Action=GetCallerIdentity&Version=2011-06-15";
-    private static final String DEFAULT_CANONICAL_URI = "/";
 
     private String region = DEFAULT_REGION;
     private String serviceName = DEFAULT_SERVICE_NAME;
@@ -31,7 +29,7 @@ public class AWSV4SignProperties {
     private String canonicalUri;
     private Map<String, String> queryParameters;
 
-    public AWSV4SignProperties(String url) {
+    public AWSV4SignProperties(String url) throws VaultException {
         process(url);
     }
 
@@ -59,19 +57,15 @@ public class AWSV4SignProperties {
         return queryParameters;
     }
 
-    private void process(String url) {
-        URI uri;
+    private void process(String url) throws VaultException {
         try {
-            uri = new URI(url);
+            URI uri = new URI(url);
             host = uri.getHost();
             canonicalUri = uri.getPath();
             queryParameters = splitQuery(uri.getQuery());
         } catch (URISyntaxException e) {
             logger.error(String.format("Failed to parse URL and extract the properties. URL: %s", url), e);
-            logger.warn("Setting all variables to the default values");
-            host = DEFAULT_HOST;
-            canonicalUri = DEFAULT_CANONICAL_URI;
-            queryParameters = Collections.emptyMap();
+            throw new VaultException(e);
         }
     }
 
