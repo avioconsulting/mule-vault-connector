@@ -57,9 +57,9 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
         }
 
         payload.addProperty("iam_http_request_method", "POST");
-        payload.addProperty("iam_request_url", encondeBase64(iamRequestUrl));
-        payload.addProperty("iam_request_headers", encondeBase64(generateHeaders()));
-        payload.addProperty("iam_request_body", encondeBase64(iamRequestBody));
+        payload.addProperty("iam_request_url", encodeBase64(iamRequestUrl));
+        payload.addProperty("iam_request_headers", encodeBase64(generateHeaders()));
+        payload.addProperty("iam_request_body", encodeBase64(iamRequestBody));
         return payload.toString();
     }
 
@@ -94,7 +94,7 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
         return textOfHeaders;
     }
 
-    private String encondeBase64(String value) {
+    private String encodeBase64(String value) {
         byte[] encoded = Base64.getEncoder().encode(value.getBytes(StandardCharsets.UTF_8));
 
         return new String(encoded);
