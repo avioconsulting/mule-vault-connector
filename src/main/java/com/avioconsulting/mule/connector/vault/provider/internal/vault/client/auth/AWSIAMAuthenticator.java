@@ -94,9 +94,6 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
         headers.put("Content-Type", "application/x-www-form-urlencoded");
         headers.put("X-Amz-Date", awsV4Auth.getxAmzDate());
         getIamServerId().ifPresent(serverId -> headers.put("x-vault-aws-iam-server-id", serverId));
-        if (iamServerId != null && !iamServerId.isEmpty()) {
-            headers.put("x-vault-aws-iam-server-id", iamServerId);
-        }
         Gson gson = new Gson();
         String textOfHeaders = gson.toJson(headers);
 

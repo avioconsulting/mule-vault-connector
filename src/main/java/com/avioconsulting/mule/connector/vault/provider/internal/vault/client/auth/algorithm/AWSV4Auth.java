@@ -156,10 +156,8 @@ public class AWSV4Auth {
             }
             /* @co-author https://github.com/dotkebi @git #1 @date 16th March, 2017 */
             queryString.deleteCharAt(queryString.lastIndexOf("&"));
-            queryString.append("\n");
-        } else {
-            queryString.append("\n");
         }
+        queryString.append("\n");
         canonicalURL.append(queryString);
 
         /* Step 1.4 Add the canonical headers, followed by a newline character. */
@@ -173,10 +171,8 @@ public class AWSV4Auth {
             }
 
             /* Note: Each individual header is followed by a newline character, meaning the complete list ends with a newline character. */
-            canonicalURL.append("\n");
-        } else {
-            canonicalURL.append("\n");
         }
+        canonicalURL.append("\n");
 
         /* Step 1.5 Add the signed headers, followed by a newline character. */
         strSignedHeader = signedHeaders.substring(0, signedHeaders.length() - 1); // Remove last ";"
