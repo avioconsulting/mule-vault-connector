@@ -54,9 +54,18 @@ public class VaultIamConnectionProvider extends AbstractVaultConnectionProvider 
     @Parameter
     private String iamRequestBody;
 
-    @DisplayName("IAM Request Headers")
+    @DisplayName("IAM Server ID")
     @Parameter
-    private String iamRequestHeaders;
+    @Optional
+    private String iamServerId;
+
+    @DisplayName("IAM Access Key")
+    @Parameter
+    private String iamAccessKey;
+
+    @DisplayName("IAM Secret Key")
+    @Parameter
+    private String iamSecretKey;
 
     @Override
     public TlsContextFactory getTlsContextFactory() {
@@ -69,7 +78,7 @@ public class VaultIamConnectionProvider extends AbstractVaultConnectionProvider 
             logger.debug("Creating AWS IAM VaultConnection");
             VaultConfig config = VaultConfig.builder().
                     baseUrl(vaultUrl).
-                    authenticator(new AWSIAMAuthenticator(awsAuthMount, vaultRole, iamRequestUrl, iamRequestBody, iamRequestHeaders)).
+                    authenticator(new AWSIAMAuthenticator(awsAuthMount, vaultRole, iamRequestUrl, iamRequestBody, iamServerId, iamAccessKey, iamSecretKey)).
                     httpClient(httpClient).
                     timeout(httpSettings.getResponseTimeout()).
                     timeoutUnit(httpSettings.getResponseTimeoutUnit()).

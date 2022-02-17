@@ -1,10 +1,15 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth;
 
 import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConfig;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.algorithm.AWSV4Auth;
 import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class AWSIAMAuthenticator extends AbstractAuthenticator {
 
@@ -12,19 +17,31 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
 
     private static final String DEFAULT_AUTH_MOUNT = "aws";
 
+    private static final String DEFAULT_HOST = "sts.amazonaws.com";
+    private static final String DEFAULT_SERVICE_NAME = "sts";
+    private static final String DEFAULT_REGION = "us-east-1";
+    private static final String DEFAULT_METHOD = "POST";
+    private static final String DEFAULT_PAYLOAD = "Action=GetCallerIdentity&Version=2011-06-15";
+    private static final String DEFAULT_CANONICAL_URI = "/";
+
     private String authMount;
     private String role;
     private String iamRequestUrl;
     private String iamRequestBody;
-    private String iamRequestHeaders;
+    private String iamServerId;
+    private String iamAccessKey;
+    private String iamSecretKey;
 
-    public AWSIAMAuthenticator(String authMount, String role, String iamRequestUrl, String iamRequestBody, String iamRequestHeaders) {
+    public AWSIAMAuthenticator(String authMount, String role, String iamRequestUrl, String iamRequestBody,
+                               String iamServerId, String iamAccessKey, String iamSecretKey) {
         super();
         this.authMount = authMount;
         this.role = role;
         this.iamRequestUrl = iamRequestUrl;
         this.iamRequestBody = iamRequestBody;
-        this.iamRequestHeaders = iamRequestHeaders;
+        this.iamServerId = iamServerId;
+        this.iamAccessKey = iamAccessKey;
+        this.iamSecretKey = iamSecretKey;
     }
 
     @Override
@@ -45,10 +62,54 @@ public class AWSIAMAuthenticator extends AbstractAuthenticator {
             payload.addProperty("role", this.role);
         }
 
+        String encodedIamRequestHeaders = new String(Base64.getEncoder().encode(generateHeaders().getBytes(StandardCharsets.UTF_8)));
+
         payload.addProperty("iam_http_request_method", "POST");
         payload.addProperty("iam_request_url", this.iamRequestUrl);
-        payload.addProperty("iam_request_headers", this.iamRequestHeaders);
+        payload.addProperty("iam_request_headers", encodedIamRequestHeaders);
         payload.addProperty("iam_request_body", this.iamRequestBody);
         return payload.toString();
     }
+
+    private String generateHeaders() {
+
+        TreeMap<String, String> awsHeaders = new TreeMap();
+        awsHeaders.put("host", DEFAULT_HOST);
+        if (iamServerId != null && !iamServerId.isEmpty()) {
+            awsHeaders.put("x-vault-aws-iam-server-id", iamServerId);
+        }
+
+        AWSV4Auth awsV4Auth = new AWSV4Auth.Builder(iamAccessKey, iamSecretKey)
+                .regionName(DEFAULT_REGION)
+                .serviceName(DEFAULT_SERVICE_NAME)
+                .httpMethodName(DEFAULT_METHOD)
+                .canonicalURI(DEFAULT_CANONICAL_URI) //end point
+                .queryParametes(null) //query parameters if any
+                .awsHeaders(awsHeaders) //aws header parameters
+                .payload(DEFAULT_PAYLOAD) // payload if any
+                .debug() // turn on the debug mode
+                .build();
+
+        String authorization = awsV4Auth.getHeaders().get("Authorization");
+
+        Map<String, String> headers = new HashMap();
+        headers.put("Authorization", authorization);
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("X-Amz-Date", awsV4Auth.getxAmzDate());
+        if (iamServerId != null && !iamServerId.isEmpty()) {
+            headers.put("x-vault-aws-iam-server-id", iamServerId);
+        }
+        Gson gson = new Gson();
+        String textOfHeaders = gson.toJson(headers);
+
+        return textOfHeaders;
+
+    }
+
+    public Optional<String> getIamServerId() {
+
+        return Optional.of(iamServerId);
+
+    }
+
 }
