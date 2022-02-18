@@ -85,18 +85,22 @@ Attributes:
 *	`vaultUrl` - Vault Base URL (i.e. https://localhost:8200)
 *	`awsAuthMount` - (Optional) Vault mount point for AWS Authentication backend. If not specified, `aws` will be used.
 *	`vaultRole` - Name of the role against which the login is being attempted. If role is not specified, then the login endpoint looks for a role bearing the name of the AMI ID of the EC2 instance that is trying to login if using the ec2 auth method, or the "friendly name" (i.e., role name or username) of the IAM principal authenticated. If a matching role is not found, login fails
-*	`iamRequestUrl` - Base64 encoded HTTP URL used in the signed request. Most likely `aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8=`, which is just the Base64 encoded value of `https://sts.amazonaws.com/` as most requests will probably use POST with an empty URI
-*	`iamRequestBody` - Base64 encoded body of the signed request. Most likely `QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ==`, which is the Base64 encoded value of `Action=GetCallerIdentity&Version=2011-06-15`
-*	`iamRequestHeaders` - Request headers
+*	`awsAccessKey` - The AWS Access Key to use when signing the request headers
+*	`awsSecretKey` - The AWS Secret Key to use when signing the request headers
+*	`iamRequestUrl` - (Optional) HTTP URL used in the signed request. Most likely `https://sts.amazonaws.com/` as most requests will probably use POST with an empty URI. Defaults to `https://sts.amazonaws.com/`
+*	`iamRequestBody` - (Optional) Body of the signed request. Most likely `Action=GetCallerIdentity&Version=2011-06-15`, which is also the default value.
+*	`iamServerId` - (Optional) The value of the X-Vault-AWS-IAM-Server-ID property to send to vault. If empty, no value is sent.
 
 ```xml
 <vault:config name="config" >
   <vault:iam-connection vaultUrl="${vaultUrl}"
                         awsAuthMount="aws"
                         vaultRole="ec2"
-                        iamRequestUrl="aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8="
-                        iamRequestBody="QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ=="
-                        iamRequestHeaders="X-Vault-AWS-IAM-Server-ID=dev.vault.test.com"/>
+                        awsAccessKey="your-access-key"
+                        awsSecretKey="your-secret-key"
+                        iamRequestUrl="https://sts.amazonaws.com/"
+                        iamRequestBody="Action=GetCallerIdentity&Version=2011-06-15"
+                        iamServerId="dev.vault.test.com"/>
 </vault:config>
 ```
 
