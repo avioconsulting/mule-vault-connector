@@ -40,9 +40,9 @@
         <vault:iam-connection vaultUrl="https://myvault.com:8200"
                               awsAuthMount="aws"
                               vaultRole="ec2"
-                              iamRequestUrl="aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8="
-                              iamRequestBody="QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ=="
-                              iamRequestHeaders="X-Vault-AWS-IAM-Server-ID=dev.vault.avioconsulting.com"
+                              awsAccessKey="FAKE-ACCESS-KEY"
+                              awsSecretKey="FAKE-SECRET-KEY"
+                              iamServerId="dev.vault.avioconsulting.com"
                               proxyConfig="ntlmProxy">
             <tls:context>
                 <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
