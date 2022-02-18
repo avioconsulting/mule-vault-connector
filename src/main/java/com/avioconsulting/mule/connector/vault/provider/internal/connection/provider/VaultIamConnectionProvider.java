@@ -13,6 +13,7 @@ import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
+import org.mule.runtime.extension.api.annotation.param.display.Password;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.slf4j.Logger;
@@ -44,19 +45,31 @@ public class VaultIamConnectionProvider extends AbstractVaultConnectionProvider 
     @Parameter
     private String vaultRole;
 
+    @DisplayName("AWS Access Key")
+    @Parameter
+    private String awsAccessKey;
+
+    @DisplayName("AWS Secret Key")
+    @Parameter
+    @Password
+    private String awsSecretKey;
+
     @DisplayName("IAM Request URL")
-    @Summary("Base64 encoded used in the signed request. Most likely aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8=")
+    @Summary("URL used in the signed request. Most likely https://sts.amazonaws.com/")
+    @Optional(defaultValue = "https://sts.amazonaws.com/")
     @Parameter
     private String iamRequestUrl;
 
     @DisplayName("IAM Request Body")
-    @Summary("Base64 encoded body of the signed request. Most likely QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ==")
+    @Summary("Body of the signed request. Most likely Action=GetCallerIdentity&Version=2011-06-15")
+    @Optional(defaultValue = "Action=GetCallerIdentity&Version=2011-06-15")
     @Parameter
     private String iamRequestBody;
 
-    @DisplayName("IAM Request Headers")
+    @DisplayName("IAM Server ID")
     @Parameter
-    private String iamRequestHeaders;
+    @Optional
+    private String iamServerId;
 
     @Override
     public TlsContextFactory getTlsContextFactory() {
@@ -69,7 +82,7 @@ public class VaultIamConnectionProvider extends AbstractVaultConnectionProvider 
             logger.debug("Creating AWS IAM VaultConnection");
             VaultConfig config = VaultConfig.builder().
                     baseUrl(vaultUrl).
-                    authenticator(new AWSIAMAuthenticator(awsAuthMount, vaultRole, iamRequestUrl, iamRequestBody, iamRequestHeaders)).
+                    authenticator(new AWSIAMAuthenticator(awsAuthMount, vaultRole, iamRequestUrl, iamRequestBody, iamServerId, awsAccessKey, awsSecretKey)).
                     httpClient(httpClient).
                     timeout(httpSettings.getResponseTimeout()).
                     timeoutUnit(httpSettings.getResponseTimeoutUnit()).
