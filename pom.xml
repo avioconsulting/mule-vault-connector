@@ -140,14 +140,25 @@
                                         </capAdd>
                                         <env>
                                             <VAULT_DEV_ROOT_TOKEN_ID>test_token</VAULT_DEV_ROOT_TOKEN_ID>
+                                            <VAULT_LOCAL_CONFIG>{"listener":[{"tcp":{"address":"0.0.0.0:8205", "tls_cert_file":"/vault/ca/vault-example.pem", "tls_key_file":"/vault/ca/private/vault-example-key.pem"}}], "backend": {"file": {"path": "/vault/file"}}, "default_lease_ttl": "168h", "max_lease_ttl": "720h", "ui": "true"}</VAULT_LOCAL_CONFIG>
                                         </env>
+                                        <volumes>
+                                            <bind>
+                                                <volume>${basedir}/src/test/resources/container/cert:/vault/ca</volume>
+                                                <volume>${basedir}/src/test/resources/container/config:/vault/prepare</volume>
+                                            </bind>
+                                        </volumes>
                                         <ports>
-                                            <port>vault.port:8200</port>
+                                            <port>vault.port:8205</port>
                                         </ports>
                                         <wait>
                                             <http>
-                                                <url>http://localhost:${vault.port}/v1/sys/health</url>
+                                                <url>https://localhost:${vault.port}/v1/sys/health</url>
+                                                <allowAllHosts>true</allowAllHosts>
                                             </http>
+                                            <exec>
+                                                <postStart>sh /vault/prepare/configure-tls.sh</postStart>
+                                            </exec>
                                             <time>10000</time>
                                         </wait>
                                     </run>
