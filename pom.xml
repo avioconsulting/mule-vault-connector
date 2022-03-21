@@ -68,6 +68,7 @@
                     </runtimeConfiguration>
                     <systemPropertyVariables>
                         <vault.port>${vault.port}</vault.port>
+                        <proxy.port>${proxy.port}</proxy.port>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
@@ -125,6 +126,31 @@
                 <version>0.20.1</version>
                 <executions>
                     <execution>
+                        <id>start-squid-proxy</id>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>salrashid123/squidproxy</name>
+                                    <alias>squid-proxy</alias>
+                                    <run>
+                                        <volumes>
+                                            <bind>
+                                                <volume>${basedir}/src/test/resources/container/squid:/apps/squid/custom/conf</volume>
+                                            </bind>
+                                        </volumes>
+                                        <ports>
+                                            <port>proxy.port:3128</port>
+                                        </ports>
+                                        <cmd>/apps/squid/sbin/squid -NsY -f /apps/squid/custom/conf/squid.conf.forward</cmd>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>start-vault</id>
                         <goals>
                             <goal>start</goal>
@@ -168,6 +194,12 @@
                     </execution>
                     <execution>
                         <id>stop-vault</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-squid-proxy</id>
                         <goals>
                             <goal>stop</goal>
                         </goals>
