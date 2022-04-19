@@ -37,27 +37,28 @@ Execute the following to test the Get Secret component
 
 Execute the following to test the Write Secret component
 
-curl -d '{"path":"secret/samples/sample2","secret":"{\"attr1\":\"data2\"}"}' -X POST http://localhost:8081/writeSecret
-curl -d '{"path":"secret/samples/sample2"}' -X POST http://localhost:8081/getSecret
+`curl -d '{"path":"secret/samples/sample2","secret":"{\"attr1\":\"data2\"}"}' -X POST http://localhost:8081/writeSecret`
+ 
+`curl -d '{"path":"secret/samples/sample2"}' -X POST http://localhost:8081/getSecret`
 
 ### Executing encrypt-data-flow
 
 Execute the following to test the Encrypt data component
 
-curl -d '{"plaintext":"This is my sample plaintext"}' -X POST http://localhost:8081/encrypt
+`curl -d '{"plaintext":"This is my sample plaintext"}' -X POST http://localhost:8081/encrypt`
 
 ### Executing decrypt-data-flow
 
 Execute the following to test the Decrypt data component, replacing CIPHERTEXT with the output of the command above
 
-curl -d '{"ciphertext":"CIPHERTEXT"}' -X POST http://localhost:8081/decrypt
+`curl -d '{"ciphertext":"CIPHERTEXT"}' -X POST http://localhost:8081/decrypt`
 
 ### Executing reencrypt-data-flow
 
 Execute the following to test the Reencrypt data component, replacing CIPHERTEXT with the output of the command above
 
-curl -d '{"ciphertext":"CIPHERTEXT"}' -X POST http://localhost:8081/reencrypt
+`curl -d '{"ciphertext":"CIPHERTEXT"}' -X POST http://localhost:8081/reencrypt`
 
 ## Step 3: Stopping Vault
 
-Execute killVault.sh to kill all running Vault servers
+Execute `killVault.sh` to kill all running Vault servers

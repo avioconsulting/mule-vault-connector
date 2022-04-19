@@ -1,9 +1,9 @@
-package com.avioconsulting.mule.vault.api.client.auth;
+package com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth;
 
-import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.avioconsulting.mule.vault.api.client.VaultConstants;
-import com.avioconsulting.mule.vault.api.client.VaultRequestBuilder;
-import com.avioconsulting.mule.vault.api.client.exception.VaultException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConfig;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConstants;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultRequestBuilder;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
 import org.mule.runtime.http.api.HttpConstants;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;

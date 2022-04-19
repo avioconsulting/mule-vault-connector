@@ -1,6 +1,6 @@
-package com.avioconsulting.mule.vault.api.client;
+package com.avioconsulting.mule.connector.vault.provider.internal.vault.client;
 
-import com.avioconsulting.mule.vault.api.client.auth.VaultAuthenticator;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.VaultAuthenticator;
 import org.mule.runtime.http.api.client.HttpClient;
 
 import java.util.concurrent.TimeUnit;

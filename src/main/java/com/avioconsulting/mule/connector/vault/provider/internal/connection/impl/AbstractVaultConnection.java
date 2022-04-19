@@ -5,12 +5,12 @@ import com.avioconsulting.mule.connector.vault.provider.internal.error.exception
 import com.avioconsulting.mule.connector.vault.provider.internal.error.exception.VaultAccessException;
 import com.avioconsulting.mule.connector.vault.provider.internal.configuration.ConfigurationOverrides;
 import com.avioconsulting.mule.connector.vault.provider.internal.connection.VaultConnection;
-import com.avioconsulting.mule.vault.api.client.VaultClient;
-import com.avioconsulting.mule.vault.api.client.VaultConfig;
-import com.avioconsulting.mule.vault.api.client.VaultConstants;
-import com.avioconsulting.mule.vault.api.client.VaultRequestBuilder;
-import com.avioconsulting.mule.vault.api.client.exception.AccessException;
-import com.avioconsulting.mule.vault.api.client.exception.VaultException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultClient;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConfig;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultConstants;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.VaultRequestBuilder;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.AccessException;
+import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
 import com.google.gson.JsonObject;
 import org.mule.runtime.api.exception.DefaultMuleException;
 import org.mule.runtime.extension.api.runtime.operation.Result;
@@ -66,7 +66,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             return vault.getSecret(builder.build());
         } catch (AccessException e) {
             throw new VaultAccessException(e);
-        } catch (com.avioconsulting.mule.vault.api.client.exception.SecretNotFoundException e) {
+        } catch (com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException e) {
             throw new SecretNotFoundException(e);
         } catch (VaultException e) {
             throw new DefaultMuleException(e);
@@ -87,7 +87,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             return vault.writeSecret(builder.build());
         } catch (AccessException e) {
             throw new VaultAccessException(e);
-        } catch (com.avioconsulting.mule.vault.api.client.exception.SecretNotFoundException e) {
+        } catch (com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException e) {
             throw new SecretNotFoundException(e);
         } catch (VaultException e) {
             throw new DefaultMuleException(e);
@@ -111,7 +111,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             return vault.encryptData(builder.payload(jo.toString()).build());
         } catch (AccessException e) {
             throw new VaultAccessException(e);
-        } catch (com.avioconsulting.mule.vault.api.client.exception.SecretNotFoundException e) {
+        } catch (com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException e) {
             throw new SecretNotFoundException(e);
         } catch (VaultException e) {
             throw new DefaultMuleException(e);
@@ -133,7 +133,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             return vault.decryptData(builder.payload(jo.toString()).build());
         } catch (AccessException e) {
             throw new VaultAccessException(e);
-        } catch (com.avioconsulting.mule.vault.api.client.exception.SecretNotFoundException e) {
+        } catch (com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException e) {
             throw new SecretNotFoundException(e);
         } catch (VaultException e) {
             throw new DefaultMuleException(e);
@@ -156,7 +156,7 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             return vault.reencryptData(builder.payload(jo.toString()).build());
         } catch (AccessException e) {
             throw new VaultAccessException(e);
-        } catch (com.avioconsulting.mule.vault.api.client.exception.SecretNotFoundException e) {
+        } catch (com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException e) {
             throw new SecretNotFoundException(e);
         } catch (VaultException e) {
             throw new DefaultMuleException(e);

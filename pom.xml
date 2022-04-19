@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>f2ea2cb4-c600-4bb5-88e8-e952ff5591ee</groupId>
+    <groupId>com.avioconsulting.mule.connector</groupId>
     <artifactId>vault-connector</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>mule-extension</packaging>
@@ -21,8 +21,6 @@
         <muleServicesVersion>1.1.2</muleServicesVersion>
         <mockServerVersion>5.10.0</mockServerVersion>
         <gsonVersion>2.8.6</gsonVersion>
-        <testContainersVersion>1.14.3</testContainersVersion>
-        <bouncyCastleVersion>1.60</bouncyCastleVersion>
         <mule.maven.plugin.version>3.5.2</mule.maven.plugin.version>
         <munit.input.directory>${basedir}/mule-vault-connector-munit-tests</munit.input.directory>
         <munit.output.directory>${basedir}/target/test-mule/munit</munit.output.directory>
@@ -30,6 +28,8 @@
         <munit.version>2.3.6</munit.version>
         <mavenResourcesVersion>3.0.2</mavenResourcesVersion>
         <app.runtime>4.3.0</app.runtime>
+        <testContainersVersion>1.15.3</testContainersVersion>
+        <bouncyCastleVersion>1.67</bouncyCastleVersion>
     </properties>
 
     <build>
