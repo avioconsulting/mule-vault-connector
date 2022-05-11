@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="428dc1f5-0d51-482e-a9fc-8b937bc6e3b1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="simplemunitFlow" doc:id="79657a07-0f3a-4a8d-8358-b06fb67d8d0a" >
+		<http:listener doc:name="Listener" doc:id="d0afeb0c-4f4a-4e38-8260-03600c692308" config-ref="HTTP_Listener_config" path="/simple"/>
+		<set-payload value="simple response" doc:name="Set Payload" doc:id="3107b78d-1ad7-41ff-831e-53b7ae0f5c50" mimeType="text/plain"/>
+	</flow>
+	<sub-flow name="vault-connector-get-secret" doc:id="c0966ffe-d4ee-4bbe-8203-a14f31d29a04" >
+		<vault:get-secret doc:name="Get secret" doc:id="29a022ca-969e-4202-a8ad-a82a5ed404f5" config-ref="vault-config-default" path="/v1/secret/data/test/mysecret" />
+	</sub-flow>	
+</mule>

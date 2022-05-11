@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_a9a4d837_25b6_43ae_8c7a_b7d25a393dbd_Output_Attributes = {|
+  headers?: { _?: String }, 
+  reasonPhrase?: String, 
+  statusCode?: Number
+|} {"typeAlias": "VaultResponseAttributes",
+"typeId": "com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttributes"}
+

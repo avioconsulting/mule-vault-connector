@@ -1,0 +1,27 @@
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd
+          http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+
+    <vault:config name="iam-config" >
+        <vault:iam-connection vaultUrl="${vaultUrl}"
+                              awsAuthMount="aws"
+                              vaultRole="ec2"
+                              iamRequestUrl="aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8="
+                              iamRequestBody="QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNQ=="
+                              iamRequestHeaders="X-Vault-AWS-IAM-Server-ID=dev.vault.avioconsulting.com">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:iam-connection>
+    </vault:config>
+
+    <flow name="getSecretFlow-iam" doc:id="a9a4d837-25b6-43ae-8c7a-b7d25a393dbd">
+        <vault:get-secret config-ref="iam-config" path="secret/data/test/mysecret"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
+    </flow>
+
+</mule>
