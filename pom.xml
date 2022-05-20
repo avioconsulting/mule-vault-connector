@@ -20,7 +20,7 @@
         <muleMetadataVersion>1.1.2</muleMetadataVersion>
         <muleServicesVersion>1.1.2</muleServicesVersion>
         <mockServerVersion>5.10.0</mockServerVersion>
-        <gsonVersion>2.8.6</gsonVersion>
+        <gsonVersion>2.8.9</gsonVersion>
         <testContainersVersion>1.14.3</testContainersVersion>
         <bouncyCastleVersion>1.67</bouncyCastleVersion>
     </properties>
