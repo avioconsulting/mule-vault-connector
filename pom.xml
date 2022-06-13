@@ -20,7 +20,7 @@
         <muleMetadataVersion>1.1.2</muleMetadataVersion>
         <muleServicesVersion>1.1.2</muleServicesVersion>
         <mockServerVersion>5.10.0</mockServerVersion>
-        <gsonVersion>2.8.6</gsonVersion>
+        <gsonVersion>2.8.9</gsonVersion>
         <mule.maven.plugin.version>3.5.2</mule.maven.plugin.version>
         <munit.input.directory>${basedir}/mule-vault-connector-munit-tests</munit.input.directory>
         <munit.output.directory>${basedir}/target/test-mule/munit</munit.output.directory>

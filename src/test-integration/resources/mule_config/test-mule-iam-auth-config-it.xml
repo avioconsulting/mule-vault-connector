@@ -5,7 +5,16 @@
           http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
     <vault:config name="config" >
-        <vault:iam-connection vaultUrl="${vaultUrl}" awsAuthMount="aws" vaultRole="ec2" iamRequestUrl="${iamReqUrl}" iamRequestBody="${iamReqBody}" iamRequestHeaders="${iamReqHeaders}"/>
+        <vault:iam-connection vaultUrl="${vaultUrl}" 
+                              awsAuthMount="aws" 
+                              vaultRole="ec2" 
+                              awsAccessKey="FAKE-ACCESS-KEY"
+                              awsSecretKey="FAKE-SECRET-KEY"
+                              iamServerId="dev.vault.avioconsulting.com">
+            <tls:context>
+                <tls:trust-store type="jks" path="mockserver/truststore.jks" password="password" />
+            </tls:context>
+        </vault:iam-connection>
     </vault:config>
 
     <flow name="getSecretFlow">
