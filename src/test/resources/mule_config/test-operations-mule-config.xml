@@ -1,62 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
-      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
-      xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<mule xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
       xmlns="http://www.mulesoft.org/schema/mule/core"
-      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-        http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
         http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
         http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
 
-    <http:listener-config name="HTTP_Listener_config" >
-        <http:listener-connection host="0.0.0.0" port="8081" />
-    </http:listener-config>
-
-    <vault:config name="configV2" >
-        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}" >
+    <!--     <vault:config name="Vault_Config_KV3" > -->
+    <!--         <vault:basic-connection vaultUrl="http://localhost:8200" engineVersion="v2" vaultToken="devroot" /> -->
+    <!--     </vault:config> -->
+    <vault:config name="configV2" engineVersion="V2">
+        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}">
             <tls:context>
-                <tls:trust-store type="jks" path="/Users/amead/truststore.jks" password="password" />
+                <tls:trust-store type="jks" path="truststore.jks" password="password"/>
             </tls:context>
         </vault:basic-connection>
     </vault:config>
 
     <vault:config name="configV1" >
-        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}" engineVersion="v1">
+        <vault:basic-connection vaultToken="MOCK_TOKEN" vaultUrl="${vaultUrl}">
             <tls:context>
-                <tls:trust-store type="jks" path="/Users/amead/truststore.jks" password="password" />
+                <tls:trust-store type="jks" path="truststore.jks" password="password" />
             </tls:context>
         </vault:basic-connection>
     </vault:config>
 
     <flow name="getSecretFlow">
-        <http:listener config-ref="HTTP_Listener_config" path="/getSecret"/>
-        <vault:get-secret config-ref="configV2" path="secret/test/mysecret"/>
+        <vault:get-secret path="secret/test/mysecret" config-ref="configV2"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="missingFlow">
         <vault:get-secret config-ref="configV2" path="secret/does/not/exist"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="writeSecretFlow">
         <vault:write-secret config-ref="configV2" path="secret/test/mule-write" secret='{"name":"test"}'/>
-        <vault:get-secret config-ref="configV2" path="secret/test/mule-write" />
+        <vault:get-secret config-ref="configV1" path="secret/test/mule-write" engineVersion="V2"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="dynamicSecretFlow">
         <vault:get-secret config-ref="configV1" path="database/creds/company-role"/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="encryptDataFlow">
-        <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="plaintext" />
+        <vault:encrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" plaintext="cGxhaW50ZXh0" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="decryptDataFlow">
         <vault:decrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="vault:v1:lajksdfklasdjflkjasdlfjkljaklsdfkljkldsjf=="/>
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
 
     <flow name="reEncryptFlow">
         <vault:reencrypt-data config-ref="configV1" transitMountpoint="transit" keyName="testKey" ciphertext="vault:v1:lkjsadlfkjklasdjfkljkljasdfkjf123sdfadf==" />
+        <set-payload value='#[output application/java --- write(payload, "application/json")]'/>
     </flow>
+
 </mule>
+
+

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:vault="http://www.mulesoft.org/schema/mule/vault" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="test-mule-tls-auth-config-test-suite.xml" />
+	<munit:before-suite name="test-mule-tls-auth-config-test-suiteBefore_Suite" doc:id="96edbcde-f49e-48b5-ab7f-76cb836ba9a4" >
+		<ee:transform doc:name="payload" doc:id="57e88632-312a-4a8f-96be-35aaa2683721">
+			<ee:message>
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "data": {
+        "name": "test"
+    }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<vault:write-secret doc:name="Write secret using Jks config" doc:id="664a989d-4362-4f48-a903-a638f56b7300" config-ref="jksConfig" path="secret/data/test/mySecret" secret="#[write(payload, 'application/json')]" engineVersion="V2" />
+	</munit:before-suite>
+	<munit:test name="test-mule-tls-auth-config-test-suite-getSecretFlowTrustStoreTest" doc:id="8793afde-de12-488c-be37-c957033c1d60" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowTrustStore" doc:id="3185f6a2-18e5-4428-b399-8bcd3dc75338" name="getSecretFlowTrustStore"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert name field" doc:id="84d78f88-6ca9-47ee-a6bf-5e60515483d7" actual="#[payload.data.name]" expected="test" message="#['Name field should have the value test, but got $(payload.data.name)']" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-mule-tls-auth-config-test-suite-getSecretFlowJksConfigTest" doc:id="4fa2d215-9596-4bfe-8900-e4bd6f6255d7" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlowJksConfig" doc:id="f18dd87b-0521-424d-8f0f-ac9d75c9d8b3" name="getSecretFlowJksConfig"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert name field" doc:id="125de4fc-5b39-4007-9e0e-3bb7ae5cf053" actual="#[payload.data.name]" expected="test" message="#['Name field should have the value test, but got $(payload.data.name)']" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

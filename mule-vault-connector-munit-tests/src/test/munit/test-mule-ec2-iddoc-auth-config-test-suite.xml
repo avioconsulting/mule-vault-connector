@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="test-mule-ec2-iddoc-auth-config-test-suite.xml" />
+	<munit:test name="test-mule-ec2-iddoc-auth-config-test-suite-getSecretFlow-ec2Test" doc:id="bcedc3f9-1b51-4d8e-b1fa-d932925f598b" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="b1d49f96-10d4-4919-8dc6-17516d791e9b" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/data/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretFlow-ec2" doc:id="ecbeca02-0155-48a8-8e7f-bee915683940" name="getSecretFlow-ec2"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="7f99b9a4-5982-43f3-bec4-6ca80063b2b0" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-mule-ec2-iddoc-auth-config-test-suite-getSecretMDSFlow-ec2Test" doc:id="d7c47f11-44da-42ae-b2f4-4e0f01fa0096" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="8577578a-e84e-48f5-ad29-5840491232e5" processor="vault:get-secret" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="secret/data/test/mysecret" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{&#10;    "request_id": "69411f4b-fb02-171a-f66c-485f106e7f5c",&#10;    "lease_id": "",&#10;    "renewable": false,&#10;    "lease_duration": 0,&#10;    "data": {&#10;        "data": {&#10;            "att1": "test_value1",&#10;            "att2": "test_value2"&#10;        },&#10;        "metadata": {&#10;            "created_time": "2019-04-24T23:03:18.63231658Z",&#10;            "deletion_time": "",&#10;            "destroyed": false,&#10;            "version": 1&#10;        }&#10;    },&#10;    "wrap_info": null,&#10;    "warnings": null,&#10;    "auth": null&#10;}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to getSecretMDSFlow-ec2" doc:id="e7eac545-d8f7-4c48-85c8-d4c72af2a6a9" name="getSecretMDSFlow-ec2"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="6367453e-06af-4f89-bce3-9245dca2df95" expression="#[write(payload, 'application/json')]" is="#[MunitTools::containsString('test_value1')]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

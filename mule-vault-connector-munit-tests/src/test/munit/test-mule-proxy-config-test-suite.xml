@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vault="http://www.mulesoft.org/schema/mule/vault"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/vault http://www.mulesoft.org/schema/mule/vault/current/mule-vault.xsd">
+	<munit:config name="test-mule-proxy-config-test-suite.xml" />
+	<munit:before-suite name="test-mule-proxy-config-test-suiteBefore_Suite" doc:id="84b5c5a0-66b0-4589-9641-6b9696e8e859" >
+		<ee:transform doc:name="payload" doc:id="298ba717-eae7-49bb-97e6-88fa6d3186fd">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "data": {
+        "name": "test"
+    }
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables />
+			</ee:transform>
+		<vault:write-secret doc:name="Write secret using Jks config" doc:id="b95774e1-121b-4d6b-91d7-0d00a071f314" config-ref="proxy-basic-config" path="secret/test/mySecret" secret="#[write(payload, 'application/json')]" engineVersion="V2" />
+	</munit:before-suite>
+	<munit:test name="test-mule-proxy-config-test-suite-test-mule-proxy-configFlowTest" doc:id="464741e9-71d0-45e6-b5ca-3c0738aa8008" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to test-mule-proxy-configFlow" doc:id="b4ff4434-1a73-4bac-af08-4396507ee898" name="test-mule-proxy-configFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-equals doc:name="Assert name field" doc:id="a7e34b3f-788f-4857-b426-37e28592acde" actual="#[payload.data.name]" expected="test" message="#['Name field should have the value test, but got $(payload.data.name)']" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

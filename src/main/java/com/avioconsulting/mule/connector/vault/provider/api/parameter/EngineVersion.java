@@ -4,17 +4,17 @@ package com.avioconsulting.mule.connector.vault.provider.api.parameter;
  * Enumeration of the acceptable secrets engine versions
  */
 public enum EngineVersion {
-    v1 (1),
-    v2 (2)
+    V1 (1),
+    V2 (2)
     ;
 
-    private final Integer engineVersion;
+    private final Integer versionNumber;
 
     EngineVersion(Integer i) {
-        this.engineVersion = i;
+        this.versionNumber = i;
     }
 
     public Integer getEngineVersionNumber() {
-        return this.engineVersion;
+        return this.versionNumber;
     }
 }
