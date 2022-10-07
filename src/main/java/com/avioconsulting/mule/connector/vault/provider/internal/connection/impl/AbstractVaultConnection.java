@@ -162,4 +162,25 @@ public abstract class AbstractVaultConnection implements VaultConnection {
             throw new DefaultMuleException(e);
         }
     }
+
+    @Override
+    public Result<InputStream, VaultResponseAttributes> getSecretV2(String path, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException {
+        logger.info("Getting secret from path ({}) using vault-http-libray", path);
+        VaultRequestBuilder builder = new VaultRequestBuilder().
+               config(config).
+                followRedirects(overrides.isFollowRedirects()).
+                responseTimeout(overrides.getResponseTimeout(), overrides.getResponseTimeoutUnit()).
+                kvVersion(overrides.getEngineVersion().getEngineVersionNumber()).
+                secretPath(path);
+
+        try {
+             return vault.getSecretV2(builder.build());
+        } catch (AccessException e) {
+            throw new VaultAccessException(e);
+        } catch (com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException e) {
+            throw new SecretNotFoundException(e);
+        } catch (VaultException e) {
+            throw new DefaultMuleException(e);
+        }
+    }
 }
