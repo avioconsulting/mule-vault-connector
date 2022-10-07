@@ -4,6 +4,10 @@ import com.avioconsulting.mule.connector.vault.provider.api.VaultResponseAttribu
 import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.AccessException;
 import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.SecretNotFoundException;
 import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.exception.VaultException;
+import com.avioconsulting.vault.http.client.ClientType;
+import com.avioconsulting.vault.http.client.VaultHttpClient;
+import com.avioconsulting.vault.http.client.input.VaultHttpClientInput;
+import com.avioconsulting.vault.http.client.output.VaultResponse;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -45,6 +49,23 @@ public class VaultClient {
 
     public void authenticate() throws AccessException, VaultException, InterruptedException {
         this.token = config.getAuthenticator().authenticate(config);
+    }
+
+    public Result<InputStream, VaultResponseAttributes> getSecretV2(
+            final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException {
+            VaultResponse responseFromVaultClient = VaultHttpClient.getSecretFromVault(VaultHttpClientInput.builder()
+                            .clientType(ClientType.MULE)
+                            .secretURI(request.getHttpRequestBuilder().getUri())
+                            .followRedirects(request.followRedirects)
+                            .maxTimeOutMs(request.getResponseTimeout())
+                            .token(this.token)
+                            .muleHttpService(config.getHttpService())
+                    .build());
+        Result.Builder<InputStream, VaultResponseAttributes> responseBuilder = Result.builder();
+        responseBuilder.output(new ByteArrayInputStream(String.valueOf(responseFromVaultClient).getBytes())).
+                length(responseFromVaultClient.toString().length()).
+                mediaType(MediaType.APPLICATION_JSON).build();
+        return responseBuilder.build();
     }
 
     public Result<InputStream, VaultResponseAttributes> getSecret(final VaultRequest request) throws AccessException, SecretNotFoundException, VaultException, InterruptedException {

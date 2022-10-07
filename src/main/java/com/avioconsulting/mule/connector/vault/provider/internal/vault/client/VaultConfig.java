@@ -1,6 +1,7 @@
 package com.avioconsulting.mule.connector.vault.provider.internal.vault.client;
 
 import com.avioconsulting.mule.connector.vault.provider.internal.vault.client.auth.VaultAuthenticator;
+import org.mule.runtime.http.api.HttpService;
 import org.mule.runtime.http.api.client.HttpClient;
 
 import java.util.concurrent.TimeUnit;
@@ -8,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 public class VaultConfig {
 
     private HttpClient httpClient;
+
+    private HttpService httpService;
     private String baseUrl;
     private Integer timeout;
     private TimeUnit timeoutUnit;
@@ -21,7 +24,7 @@ public class VaultConfig {
         super();
     }
 
-    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, Integer kvVersion, Boolean followRedirects) {
+    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, Integer kvVersion, Boolean followRedirects, HttpService httpService) {
         this.httpClient = httpClient;
         this.authenticator = authenticator;
         this.baseUrl = baseUrl;
@@ -29,9 +32,10 @@ public class VaultConfig {
         this.timeoutUnit = timeoutUnit;
         this.kvVersion = kvVersion;
         this.followRedirects = followRedirects;
+        this.httpService = httpService;
     }
 
-    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, Integer kvVersion, Boolean followRedirects, String namespace, boolean includeVaultRequestHeader) {
+    public VaultConfig(HttpClient httpClient, VaultAuthenticator authenticator, String baseUrl, Integer timeout, TimeUnit timeoutUnit, Integer kvVersion, Boolean followRedirects, String namespace, boolean includeVaultRequestHeader, HttpService httpService) {
         this.httpClient = httpClient;
         this.authenticator = authenticator;
         this.baseUrl = baseUrl;
@@ -41,6 +45,7 @@ public class VaultConfig {
         this.followRedirects = followRedirects;
         this.namespace = namespace;
         this.includeVaultRequestHeader = includeVaultRequestHeader;
+        this.httpService = httpService;
     }
 
     public static VaultConfigBuilder builder() {
@@ -89,5 +94,9 @@ public class VaultConfig {
 
     public VaultAuthenticator getAuthenticator() {
         return this.authenticator;
+    }
+
+    public HttpService getHttpService() {
+        return httpService;
     }
 }

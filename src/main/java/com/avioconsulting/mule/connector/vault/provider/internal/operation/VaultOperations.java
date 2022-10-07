@@ -54,6 +54,18 @@ public class VaultOperations {
   }
 
   /**
+   * Providing this operation to enable secrets retrieve using new vault-http-client lib
+   */
+  @Throws(VaultErrorTypeProvider.class)
+  @MediaType(value = APPLICATION_JSON, strict = false)
+  @OutputJsonType(schema = "metadata/secret-schema.json")
+  public Result<InputStream, VaultResponseAttributes> getSecretV2(@Config VaultConfiguration config, @Connection VaultConnection connection, @ParameterGroup(name = "Connector Overrides") ConfigurationOverrides overrides,
+          String path)
+          throws DefaultMuleException, InterruptedException {
+    return connection.getSecretV2(path,overrides);
+  }
+
+  /**
    * Write a secret to Vault
    *
    * @param connection a connected {@link VaultConnection}
@@ -72,6 +84,9 @@ public class VaultOperations {
           throws DefaultMuleException, InterruptedException {
     return connection.writeSecret(path, secret, overrides);
   }
+
+
+
 
   /**
    * Encrypt data with the Vault transit secret engine

@@ -51,6 +51,7 @@ public class VaultConnectionProvider extends AbstractVaultConnectionProvider {
               timeout(httpSettings.getResponseTimeout()).
               timeoutUnit(httpSettings.getResponseTimeoutUnit()).
               followRedirects(httpSettings.isFollowRedirects()).
+              httpService(super.httpService).
               build();
       return new BasicVaultConnection(config);
     } catch (InterruptedException | DefaultMuleException e) {

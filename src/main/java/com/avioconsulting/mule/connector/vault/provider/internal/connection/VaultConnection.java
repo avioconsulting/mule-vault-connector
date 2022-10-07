@@ -20,6 +20,8 @@ public interface VaultConnection {
 
     Result<InputStream, VaultResponseAttributes> getSecret(String path, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException;
 
+    Result<InputStream, VaultResponseAttributes> getSecretV2(String path, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException;
+
     Result<InputStream, VaultResponseAttributes> writeSecret(String path, String secret, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException;
 
     Result<InputStream, VaultResponseAttributes> encryptData(String transitMountpoint, String keyName, String plaintext, ConfigurationOverrides overrides) throws DefaultMuleException, InterruptedException;
