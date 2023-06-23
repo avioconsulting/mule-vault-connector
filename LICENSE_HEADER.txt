@@ -1,1 +1,1 @@
-(c) 2019-2020 AVIO Consulting, LLC. The software in this package is published under the terms of the SD 2-Clause License, a copy of which has been included with this distribution in the LICENSE file.
+(c) 2019-2020 AVIO Consulting, LLC. The software in this package is published under the terms of the BSD 2-Clause License, a copy of which has been included with this distribution in the LICENSE file.
